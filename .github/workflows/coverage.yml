@@ -1,0 +1,60 @@
+name: Coverage
+
+on: [push]
+jobs:
+  build:
+    name: "Ubuntu"
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/checkout@master
+         
+    - name: Install Deps
+      run: |
+        sudo apt-get install freeglut3-dev
+        sudo apt-get install lcov
+
+    - name: Prebuild Linux
+      working-directory: ${{github.workspace}}
+      run: |
+        ./prebuild.sh  
+        
+    - name: Coverage
+      working-directory: ${{github.workspace}}
+      run: |
+        mkdir build
+        cd build
+        cmake -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER="g++" ..
+        make
+        ./unittests
+        bash <(curl -s https://codecov.io/bash)
+    
+    - name: Coverage-Report-Gen
+      run: |
+        find .. -name *.gcno | xargs gcov
+        lcov -c -d .. -o coverage.info
+        lcov --remove coverage.info '/usr/local/include/*' '/usr/include/*' 'build' 'm3rdparty' 'cmake' 'scripts' -o coverage.info
+        genhtml coverage.info
+                
+    - name: codacy-coverage-reporter
+      uses: codacy/codacy-coverage-reporter-action@master
+      with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.info
+ 
+    - name: Archive Coverage HTML
+      uses: actions/upload-artifact@v2
+      with:
+          name: coverage-html
+          path: |
+            **/*.html
+            **/*.css
+            
+    - name: Archive Binary
+      uses: actions/upload-artifact@v2
+      with:
+          name: unit-tests
+          path: ${{github.workspace}}/build/unittests
+      
+        
