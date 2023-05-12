@@ -37,7 +37,7 @@ bool ListBox(const char* label, int* currIndex, std::vector<std::string>& values
         static_cast<void*>(&values), (int)values.size());
 }
 
-bool DragIntRange4(const char* label, Zest::NVec4<int>& v, float v_speed, int v_min, int v_max, const char* format, const char* format_max)
+bool DragIntRange4(const char* label, glm::i32vec4& v, float v_speed, int v_min, int v_max, const char* format, const char* format_max)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)

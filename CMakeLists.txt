@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.2)
 message(STATUS " CMakeLists: Zest")
 
 # Global Options
-option(BUILD_TESTS "Build Tests" ON)
+option(ZING_BUILD_TESTS "Build Tests" ON)
 
 # Global Settings
 set(CMAKE_CXX_STANDARD 17)
@@ -40,8 +40,10 @@ include(cmake/utils.cmake)
 # The library
 include(src/CMakeLists.txt)
 
+if (ZEST_BUILD_TESTS)
 # The tests
 include(tests/CMakeLists.txt)
+endif()
 
 # Make the CMake bits that ensure find_package does the right thing
 install(EXPORT zest-targets

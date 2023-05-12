@@ -1,6 +1,6 @@
 #include <catch.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include "zest/math/math_utils.h"
+#include <zest/math/math_utils.h>
 
 using namespace Catch::Matchers;
 using namespace Zest;

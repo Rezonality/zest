@@ -14,6 +14,7 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/src/file/runtree.cpp
     ${ZEST_ROOT}/src/file/toml_utils.cpp
     ${ZEST_ROOT}/src/math/math_utils.cpp
+    ${ZEST_ROOT}/src/settings/settings.cpp
     ${ZEST_ROOT}/src/string/murmur_hash.cpp
     ${ZEST_ROOT}/src/string/string_utils.cpp
     ${ZEST_ROOT}/src/time/profiler.cpp
@@ -48,6 +49,7 @@ add_library(Zest::Zest ALIAS Zest)
 target_include_directories(Zest
     PRIVATE
         $<BUILD_INTERFACE:${ZEST_ROOT}/libs>
+        $<BUILD_INTERFACE:${ZEST_ROOT}/include>
         ${TINYDIR_INCLUDE_DIR}
         ${ZEST_ROOT}/include
         ${CMAKE_CURRENT_BINARY_DIR}/include

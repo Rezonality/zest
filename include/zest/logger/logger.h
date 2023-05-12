@@ -113,7 +113,7 @@ private:
 
 #ifndef LOG
 #ifdef _DEBUG
-#define LOG(a, b) Log(Zest::LT::a) << b
+#define LOG(a, b) Zest::Log(Zest::LT::a) << b
 #else
 #define LOG(a, b)
 #endif
