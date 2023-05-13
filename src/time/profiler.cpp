@@ -7,7 +7,6 @@
 #include <zest/time/profiler.h>
 #include <zest/ui/dpi.h>
 
-#include "imgui.h"
 #include "imgui_internal.h"
 #include <fmt/format.h>
 

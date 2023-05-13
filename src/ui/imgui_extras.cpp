@@ -1,6 +1,7 @@
 #include <algorithm>
 
-#include <imgui.h>
+#include <zest/math/imgui_glm.h>
+
 #include <imgui_internal.h>
 
 #include "zest/ui/imgui_extras.h"
