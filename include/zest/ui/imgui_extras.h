@@ -2,7 +2,7 @@
 #include <vector>
 
 #include <glm/glm.hpp>
-#include <zest/math/math.h>
+#include <zest/math/math_utils.h>
 
 namespace ImGui
 {

@@ -37,11 +37,11 @@ void check_dpi()
     }
     auto d = GetSystemDpiForProcess(nullptr);
     dpi.scaleFactor = d / 96.0f;
-    dpi.scaleFactorXY = NVec2f(dpi.scaleFactor);
+    dpi.scaleFactorXY = glm::vec2(dpi.scaleFactor);
 #endif
 }
 
-void set_dpi(const NVec2f& value)
+void set_dpi(const glm::vec2& value)
 {
     dpi.scaleFactorXY = value;
     dpi.scaleFactor = value.x;

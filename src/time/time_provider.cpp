@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
+#include <zest/math/math_utils.h>
 #include <zest/time/time_provider.h>
 #include <zest/time/profiler.h>
 

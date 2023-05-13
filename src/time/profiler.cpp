@@ -79,7 +79,7 @@ int64_t gFrameDisplayStart = 0;
 NRectf gCandleDragRect;
 
 // Visible frame candle range
-NVec2f gFrameCandleRange = NVec2f(0.0f, 0.0f);
+glm::vec2 gFrameCandleRange = glm::vec2(0.0f, 0.0f);
 
 // Visible time range
 NVec2ll gTimeRange = NVec2ll(0, 0);
@@ -141,7 +141,7 @@ void Init()
     gCurrentRegion = 0;
     gMaxFrameTime = duration_cast<nanoseconds>(milliseconds(30)).count();
     gVisibleFrames = NVec2<uint32_t>(0, 0);
-    gFrameCandleRange = NVec2f(0, 0);
+    gFrameCandleRange = glm::vec2(0, 0);
     gFrameDisplayStart = 0;
     gRegionDisplayStart = 0;
     gMaxThreadNameSize = 0.0f;
@@ -491,12 +491,12 @@ void UpdateVisibleFrameRange()
 
 // Show the frame and region candles at the top.
 // Returns possible selected time range from the mouse
-NVec2ll ShowCandles(NVec2f& regionMin, NVec2f& regionMax)
+NVec2ll ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 {
     // Show the frame candles
     auto handleMouse = [&](const char* buttonName, const NRectf& region, auto& range, const auto& currentFrame) {
         const auto minCandlesPerView = int(4);
-        const NVec2f regionSize = region.Size();
+        const glm::vec2 regionSize = region.Size();
         bool changed = false;
 
         if (!gPaused)
@@ -514,7 +514,7 @@ NVec2ll ShowCandles(NVec2f& regionMin, NVec2f& regionMax)
                 auto delta = ImGui::GetMouseDragDelta(0).x;
                 if (ImGui::GetIO().KeyCtrl)
                 {
-                    gCandleDragRect = NRectf(NVec2f(ImGui::GetIO().MouseClickedPos[0]) - region.topLeftPx, NVec2f(ImGui::GetIO().MouseClickedPos[0]) - region.topLeftPx + NVec2f(ImGui::GetMouseDragDelta(0)));
+                    gCandleDragRect = NRectf(glm::vec2(ImGui::GetIO().MouseClickedPos[0]) - region.topLeftPx, glm::vec2(ImGui::GetIO().MouseClickedPos[0]) - region.topLeftPx + glm::vec2(ImGui::GetMouseDragDelta(0)));
                     gCandleDragRect.Normalize();
                 }
                 else
@@ -523,7 +523,7 @@ NVec2ll ShowCandles(NVec2f& regionMin, NVec2f& regionMax)
                     auto dragCandleDelta = float((delta / regionSize.x) * (range.y - range.x));
                     ImGui::ResetMouseDragDelta(0);
 
-                    auto newVisible = range - NVec2f(dragCandleDelta, dragCandleDelta);
+                    auto newVisible = range - glm::vec2(dragCandleDelta, dragCandleDelta);
                     if ((newVisible.y < (currentFrame - 1) && newVisible.x >= MinFrame))
                     {
                         range = newVisible;
@@ -544,7 +544,7 @@ NVec2ll ShowCandles(NVec2f& regionMin, NVec2f& regionMax)
             {
                 if (gCandleDragRect.Empty())
                 {
-                    gCandleDragRect = NRectf(NVec2f(ImGui::GetIO().MouseClickedPos[0]) - region.topLeftPx, NVec2f(ImGui::GetIO().MouseClickedPos[0]) - region.topLeftPx + NVec2f(1.0f, 0.0f));
+                    gCandleDragRect = NRectf(glm::vec2(ImGui::GetIO().MouseClickedPos[0]) - region.topLeftPx, glm::vec2(ImGui::GetIO().MouseClickedPos[0]) - region.topLeftPx + glm::vec2(1.0f, 0.0f));
                     gCandleDragRect.Normalize();
                 }
             }
@@ -554,7 +554,7 @@ NVec2ll ShowCandles(NVec2f& regionMin, NVec2f& regionMax)
                 gCandleDragRect.Clear();
 
                 const auto sectionWheelZoomSpeed = 1.0f;
-                auto mouseToCandle = [&](NVec2f& range) {
+                auto mouseToCandle = [&](glm::vec2& range) {
                     return (((ImGui::GetMousePos().x - region.Left()) / regionSize.x) * (range.y - range.x)) + range.x;
                 };
 
@@ -563,7 +563,7 @@ NVec2ll ShowCandles(NVec2f& regionMin, NVec2f& regionMax)
                 {
                     auto candleRange = range.y - range.x;
                     auto tenPercent = ((range.y - range.x) * .1f) * zoom;
-                    auto newVisible = range + NVec2f(tenPercent, -tenPercent);
+                    auto newVisible = range + glm::vec2(tenPercent, -tenPercent);
 
                     auto oldMouseCandle = mouseToCandle(range);
                     auto newMouseCandle = mouseToCandle(newVisible);
@@ -608,14 +608,14 @@ NVec2ll ShowCandles(NVec2f& regionMin, NVec2f& regionMax)
     {
         if (gCurrentFrame >= MinLeadInFrames)
         {
-            gFrameCandleRange = NVec2f(MinFrame, float(gCurrentFrame - 1));
+            gFrameCandleRange = glm::vec2(MinFrame, float(gCurrentFrame - 1));
             gFrameCandleRange.x = std::max(gFrameCandleRange.x, 0.0f);
         }
     }
 
     NVec2ll dragTimeRange = NVec2ll(0);
     auto drawRegions = [&dragTimeRange](const auto maxRegion, const auto& region, const auto& framesStartTime, const auto& framesDuration, auto& regionData, auto& regionDisplayStart, const auto& maxTime, const auto& limitTime, const auto& color1, const auto& color2) {
-        const NVec2f candleRegionSize = region.Size();
+        const glm::vec2 candleRegionSize = region.Size();
         const auto pDrawList = ImGui::GetWindowDrawList();
         const auto MaxCandleColor = ThemeManager::Instance().Get(color_Error);
 
@@ -634,7 +634,7 @@ NVec2ll ShowCandles(NVec2f& regionMin, NVec2f& regionMax)
             regionDisplayStart++;
         }
 
-        auto dragLimits = NVec2f(gCandleDragRect.topLeftPx.x + region.Left(), gCandleDragRect.Right() + region.Left());
+        auto dragLimits = glm::vec2(gCandleDragRect.topLeftPx.x + region.Left(), gCandleDragRect.Right() + region.Left());
         auto pixelTime = framesStartTime - timePerPixel;
         auto currentRegion = regionDisplayStart;
         auto lastX = -1.0f;
@@ -861,9 +861,9 @@ void ShowProfile(bool* opened)
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 
     auto regionSize = ImGui::GetContentRegionAvail();
-    NVec2f regionMin(ImGui::GetCursorScreenPos());
-    NVec2f regionMax(regionMin.x + regionSize.x, regionMin.y + regionSize.y);
-    NVec2f topLeft = regionMin;
+    glm::vec2 regionMin(ImGui::GetCursorScreenPos());
+    glm::vec2 regionMax(regionMin.x + regionSize.x, regionMin.y + regionSize.y);
+    glm::vec2 topLeft = regionMin;
 
     auto selectedTimeRange = ShowCandles(regionMin, regionMax);
 
@@ -871,7 +871,7 @@ void ShowProfile(bool* opened)
     regionSize = regionMax - regionMin;
 
     // Setup
-    const NVec2f textPadding = NVec2f(3, 3) * dpi.scaleFactorXY;
+    const glm::vec2 textPadding = glm::vec2(3, 3) * dpi.scaleFactorXY;
     auto pDrawList = ImGui::GetWindowDrawList();
     const auto pFont = ImGui::GetFont();
     const auto fontSize = ImGui::GetFontSize() * scale;
@@ -944,7 +944,7 @@ void ShowProfile(bool* opened)
     };
 
     regionSize.y -= 2;
-    NVec2f mouseClick;
+    glm::vec2 mouseClick;
     ImGui::InvisibleButton("##FramesSectionsWindowDummy", regionSize);
     if (ImGui::IsItemActive())
     {

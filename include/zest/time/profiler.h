@@ -141,7 +141,7 @@ private:
 // PROFILE_SCOPE(MyNameWithoutQuotes)
 //Zest::Theme::ThemeManager::ColorFromName(#name, sizeof(#name)));
 #define PROFILE_SCOPE(name) \
-static const uint32_t name##_color = ToPackedARGB(NVec4f(1.0f)); \
+static const uint32_t name##_color = Zest::ToPackedARGB(glm::vec4(1.0f)); \
 //Zest::Profiler::ProfileScope name##_scope(#name, name##_color, __FILE__, __LINE__);
 
 // PROFILE_SCOPE(char*, ImColor32 bit value)

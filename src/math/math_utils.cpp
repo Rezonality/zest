@@ -1,6 +1,6 @@
 #include <cmath>
 
-#include <zest/math/math.h>
+//#include <zest/math/math.h>
 #include <zest/math/math_utils.h>
 #include <zest/math/random_utils.h>
 
@@ -36,11 +36,11 @@ int32_t RandRange(int32_t min, int32_t max)
 /*
 // Build a unit quaternion representing the rotation
 // from u to v. The input vectors need not be normalised.
-glm::quat QuatFromVectors(NVec3f u, NVec3f v)
+glm::quat QuatFromVectors(glm::vec3 u, glm::vec3 v)
 {
     float norm_u_norm_v = sqrt(dot(u, u) * dot(v, v));
     float real_part = norm_u_norm_v + dot(u, v);
-    NVec3f w;
+    glm::vec3 w;
 
     if (real_part < 1.e-6f * norm_u_norm_v)
     {
@@ -48,8 +48,8 @@ glm::quat QuatFromVectors(NVec3f u, NVec3f v)
         // around an arbitrary orthogonal axis. Axis normalisation
         // can happen later, when we normalise the quaternion.
         real_part = 0.0f;
-        w = std::abs(u.x) > std::abs(u.z) ? NVec3f(-u.y, u.x, 0.f)
-            : NVec3f(0.f, -u.z, u.y);
+        w = std::abs(u.x) > std::abs(u.z) ? glm::vec3(-u.y, u.x, 0.f)
+            : glm::vec3(0.f, -u.z, u.y);
     }
     else
     {
@@ -66,9 +66,9 @@ float SmoothStep(float val)
     return val * val * (3.0f - 2.0f * val);
 }
 
-NVec4f RectClip(const NVec4f& rect, const NVec4f& clip)
+glm::vec4 RectClip(const glm::vec4& rect, const glm::vec4& clip)
 {
-    NVec4f ret = rect;
+    glm::vec4 ret = rect;
     if (ret.x < clip.x)
     {
         ret.x = clip.x;
@@ -105,18 +105,18 @@ float LuminanceARGB(const uint32_t& color)
     return (red + green + blue) / float(255);
 }
 
-float Luminance(const NVec4f& color)
+float Luminance(const glm::vec4& color)
 {
-    return Luminance(NVec3f(color.x, color.y, color.z) * color.w);
+    return Luminance(glm::vec3(color.x, color.y, color.z) * color.w);
 }
 
-float Luminance(const NVec3f& color)
+float Luminance(const glm::vec3& color)
 {
     // Perceived.
     return (0.299f * color.x + 0.587f * color.y + 0.114f * color.z);
 }
 
-NVec4f Desaturate(const NVec4f& col)
+glm::vec4 Desaturate(const glm::vec4& col)
 {
     float r = col.x;
     float g = col.y;
@@ -134,10 +134,10 @@ NVec4f Desaturate(const NVec4f& col)
     g = g * sq;
     b = b * sq;
 
-    return NVec4f(r, g, b, col.w);
+    return glm::vec4(r, g, b, col.w);
 }
 
-NVec4f Saturate(const NVec4f& col)
+glm::vec4 Saturate(const glm::vec4& col)
 {
     float r = col.x;
     float g = col.y;
@@ -153,7 +153,7 @@ NVec4f Saturate(const NVec4f& col)
         g = 0.0f;
     if (b < 0.0f)
         b = 0.0f;
-    return NVec4f(r, g, b, col.w);
+    return glm::vec4(r, g, b, col.w);
 }
 
 } // namespace Zest

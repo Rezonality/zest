@@ -1,13 +1,13 @@
 #include <vector>
 #include <zest/ui/colors.h>
-#include <zest/math/math.h>
+#include <zest/math/math_utils.h>
 
 namespace Zest
 {
 
 namespace
 {
-std::vector<NVec4f> DefaultColors;
+std::vector<glm::vec4> DefaultColors;
 }
 
 void colors_calculate_defaults()
@@ -22,7 +22,7 @@ void colors_calculate_defaults()
     }
 }
 
-NVec4f colors_get_default(uint64_t id)
+glm::vec4 colors_get_default(uint64_t id)
 {
     if (DefaultColors.empty())
     {

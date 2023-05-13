@@ -50,11 +50,11 @@ target_include_directories(Zest
     PRIVATE
         $<BUILD_INTERFACE:${ZEST_ROOT}/libs>
         $<BUILD_INTERFACE:${ZEST_ROOT}/include>
-        ${TINYDIR_INCLUDE_DIR}
         ${ZEST_ROOT}/include
         ${CMAKE_CURRENT_BINARY_DIR}/include
     PUBLIC
         $<BUILD_INTERFACE:${ZEST_ROOT}/include>
+        $<BUILD_INTERFACE:${TINYDIR_INCLUDE_DIR}>
         $<INSTALL_INTERFACE:include>
 )
 

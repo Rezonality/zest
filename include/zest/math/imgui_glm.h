@@ -8,7 +8,9 @@
 ImVec4(const glm::vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }          \
 ImVec4(const glm::ivec4& f) { x = (float)f.x; y = (float)f.y; z = (float)f.z; w = (float)f.w; }         \
 operator glm::vec4() const { return glm::vec4(x,y,z,w); }                                               \
-operator glm::ivec4() const { return glm::ivec4((int)x,(int)y,(int)z,(int)w); }
+operator glm::ivec4() const { return glm::ivec4((int)x,(int)y,(int)z,(int)w); }                         \
+ImVec4(const Zest::NRectf& f) { x = f.Left(); y = f.Top(); z = f.Width(); w = f.Height(); }                                         \
+operator Zest::NRectf() const { return Zest::NRectf(x,y,z,w); }
 
 #define IM_VEC2_CLASS_EXTRA                                                 \
 ImVec2(const glm::vec2& f) { x = f.x; y = f.y; }                            \
