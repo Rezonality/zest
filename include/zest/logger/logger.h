@@ -32,7 +32,7 @@ enum class LT
     DBG,
     INFO,
     WARNING,
-    ERROR
+    ERR
 };
 
 struct Logger
@@ -99,8 +99,8 @@ private:
         case LT::WARNING:
                 label = "WARN ";
                 break;
-        case LT::ERROR:
-                label = "ERROR";
+        case LT::ERR:
+                label = "ERR";
                 break;
         case LT::NONE:
                 label = "NONE";
