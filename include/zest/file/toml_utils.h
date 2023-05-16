@@ -72,4 +72,3 @@ void toml_write_vec4(toml::table& table, const std::string& strEntry, const VecT
     table.insert_or_assign(strEntry, toml::array{ value.x, value.y, value.z, value.w });
 }
 
-

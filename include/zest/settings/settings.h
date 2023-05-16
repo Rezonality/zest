@@ -15,6 +15,7 @@ enum class SettingType
     Vec2f,
     Vec3f,
     Vec4f,
+    Vec2i,
     Bool
 };
 
@@ -38,6 +39,11 @@ struct SettingValue
     SettingValue(const glm::vec2& val)
         : type(SettingType::Vec2f)
         , f2(val)
+    {
+    }
+    SettingValue(const glm::ivec2& val)
+        : type(SettingType::Vec2i)
+        , i2(val)
     {
     }
     SettingValue(const float& val)
@@ -88,6 +94,34 @@ struct SettingValue
             break;
         }
         return glm::vec2(0.0f);
+    }
+
+    glm::ivec2 ToVec2i() const
+    {
+        if (type == SettingType::Unknown)
+        {
+            type = SettingType::Vec2i;
+        }
+
+        switch (type)
+        {
+        case SettingType::Vec2i:
+            return glm::ivec2(i2);
+            break;
+        case SettingType::Vec2f:
+            return glm::ivec2(f2);
+            break;
+        case SettingType::Vec3f:
+            return glm::ivec2(f3);
+            break;
+        case SettingType::Vec4f:
+            return glm::ivec2(f4);
+            break;
+        case SettingType::Float:
+            return glm::ivec2(int(f));
+            break;
+        }
+        return glm::ivec2(0);
     }
 
     glm::vec3 ToVec3f() const
@@ -148,6 +182,7 @@ struct SettingValue
         glm::vec4 f4 = glm::vec4(1.0f);
         glm::vec3 f3;
         glm::vec2 f2;
+        glm::ivec2 i2;
         float f;
         bool b;
     };
@@ -191,6 +226,12 @@ public:
         return theme[id].ToVec4f();
     }
     
+    glm::ivec2 GetVec2i(const StringId& id)
+    {
+        auto& theme = m_themes[m_currentSetting];
+        return theme[id].ToVec2i();
+    }
+
     bool GetBool(const StringId& id)
     {
         auto& theme = m_themes[m_currentSetting];
@@ -220,5 +261,6 @@ public:
 // Grid
 DECLARE_SETTING_VALUE(s_windowSize);
 DECLARE_SETTING_VALUE(b_windowMaximized);
+DECLARE_SETTING_VALUE(s_windowPosition);
 
 }

@@ -37,6 +37,11 @@ bool SettingManager::Save(const std::filesystem::path& path)
                 toml_write_vec4(values_table, value_name.ToString(), value.ToVec4f());
             }
             break;
+            case SettingType::Vec2i:
+            {
+                toml_write_vec2(values_table, value_name.ToString(), value.ToVec2i());
+            }
+            break;
             }
         }
         tbl.insert(theme_name, values_table);
