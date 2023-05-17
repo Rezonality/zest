@@ -94,6 +94,8 @@ glm::u64vec2 gTimeRange = glm::u64vec2(0, 0);
 // Frames visible inside the current time range
 glm::ivec2 gVisibleFrames = glm::ivec2(0, 0);
 
+std::vector<glm::vec4> DefaultColors;
+
 } // namespace
 
 void Reset();
@@ -105,9 +107,25 @@ void SetProfileSettings(const ProfileSettings& s)
     Reset();
 }
 
+#define NUM_DEFAULT_COLORS 16
+
+void CalculateColors()
+{
+    double golden_ratio_conjugate = 0.618033988749895;
+    double h = .85f;
+    for (int i = 0; i < (int)NUM_DEFAULT_COLORS; i++)
+    {
+        h += golden_ratio_conjugate;
+        h = std::fmod(h, 1.0);
+        DefaultColors.emplace_back(HSVToRGB(float(h) * 360.0f, 0.6f, 200.0f));
+    }
+}
+
 // Run Init every time a profile is started
 void Init()
 {
+    CalculateColors();
+
     gThreadData.resize(settings.MaxThreads);
 
     gProfilerGeneration++;
@@ -1147,10 +1165,8 @@ void ShowProfile(bool* opened)
 
 const glm::vec4& ColorFromName(const char* pszName, const uint32_t len)
 {
-    static const glm::vec4 col(1.0f);
-    return col;
-    //const auto col = murmur_hash(pszName, len, 0);
-    //return Zest::GlobalSettingManager::Instance().GetVec4f(Zest::GlobalSettingManager::Instance().GetUniqueColor(col));
+    const auto col = murmur_hash(pszName, len, 0);
+    return DefaultColors[col % NUM_DEFAULT_COLORS];
 }
 
 } // namespace Profiler
