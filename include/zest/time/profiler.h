@@ -10,7 +10,6 @@ namespace Zest
 namespace Profiler
 {
 
-#if 0
 struct ProfilerEntry
 {
     // static infos
@@ -106,8 +105,6 @@ struct RegionScope
 };
 #define PROFILE_COL_LOCK 0xFF0000FF
 
-#endif
-
 template <class _Mutex>
 class profile_lock_guard { // class with destructor that unlocks a mutex
 public:
@@ -142,23 +139,23 @@ private:
 //Zest::Theme::ThemeManager::ColorFromName(#name, sizeof(#name)));
 #define PROFILE_SCOPE(name) \
 static const uint32_t name##_color = Zest::ToPackedARGB(glm::vec4(1.0f)); \
-//Zest::Profiler::ProfileScope name##_scope(#name, name##_color, __FILE__, __LINE__);
+Zest::Profiler::ProfileScope name##_scope(#name, name##_color, __FILE__, __LINE__);
 
 // PROFILE_SCOPE(char*, ImColor32 bit value)
 #define PROFILE_SCOPE_STR(str, col) \
-//Zest::Profiler::ProfileScope name##_scope(str, col, __FILE__, __LINE__);
+Zest::Profiler::ProfileScope name##_scope(str, col, __FILE__, __LINE__);
 
 // Mark one extra region
 #define PROFILE_REGION(name) \
-//Zest::Profiler::RegionScope name##_region;
+Zest::Profiler::RegionScope name##_region;
 
 // Give a thread a name.
 #define PROFILE_NAME_THREAD(name) \
-//Zest::Profiler::NameThread(#name);
+Zest::Profiler::NameThread(#name);
 
 // Hide a thread.  Not sure this is tested or works....
 #define PROFILE_HIDE_THREAD() \
-//Zest::Profiler::HideThread();
+Zest::Profiler::HideThread();
 
 
 

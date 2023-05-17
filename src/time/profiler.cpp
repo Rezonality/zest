@@ -6,12 +6,13 @@
 #include <zest/math/math_utils.h>
 #include <zest/time/profiler.h>
 #include <zest/ui/dpi.h>
+#include <zest/settings/settings.h>
 
 #include "imgui_internal.h"
 #include <fmt/format.h>
 
-#if 0
 using namespace std::chrono;
+using namespace Zest;
 
 // Initial prototypes used:
 // https://gist.github.com/CedricGuillemet/fc82e7a9b2f703ff1ebf
@@ -81,10 +82,10 @@ NRectf gCandleDragRect;
 glm::vec2 gFrameCandleRange = glm::vec2(0.0f, 0.0f);
 
 // Visible time range
-NVec2ll gTimeRange = NVec2ll(0, 0);
+glm::u64vec2 gTimeRange = glm::u64vec2(0, 0);
 
 // Frames visible inside the current time range
-NVec2i gVisibleFrames = NVec2i(0, 0);
+glm::ivec2 gVisibleFrames = glm::ivec2(0, 0);
 
 } // namespace
 
@@ -139,7 +140,7 @@ void Init()
     gCurrentFrame = 0;
     gCurrentRegion = 0;
     gMaxFrameTime = duration_cast<nanoseconds>(milliseconds(30)).count();
-    gVisibleFrames = NVec2<uint32_t>(0, 0);
+    gVisibleFrames = glm::uvec2(0, 0);
     gFrameCandleRange = glm::vec2(0, 0);
     gFrameDisplayStart = 0;
     gRegionDisplayStart = 0;
@@ -461,7 +462,7 @@ void UpdateVisibleFrameRange()
         gFrameCandleRange.x = gFrameCandleRange.y = 0.0f;
     }
 
-    NVec2<int32_t> frameRangeLimits = NVec2<int32_t>(0, gCurrentFrame - 2);
+    glm::i32vec2 frameRangeLimits = glm::i32vec2(0, gCurrentFrame - 2);
 
     gVisibleFrames.x = std::clamp(gVisibleFrames.x, 0, frameRangeLimits.x);
     gVisibleFrames.y = std::clamp(gVisibleFrames.y, 0, frameRangeLimits.y);
@@ -490,7 +491,7 @@ void UpdateVisibleFrameRange()
 
 // Show the frame and region candles at the top.
 // Returns possible selected time range from the mouse
-NVec2ll ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
+glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 {
     // Show the frame candles
     auto handleMouse = [&](const char* buttonName, const NRectf& region, auto& range, const auto& currentFrame) {
@@ -612,11 +613,11 @@ NVec2ll ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
         }
     }
 
-    NVec2ll dragTimeRange = NVec2ll(0);
+    glm::u64vec2 dragTimeRange = glm::u64vec2(0);
     auto drawRegions = [&dragTimeRange](const auto maxRegion, const auto& region, const auto& framesStartTime, const auto& framesDuration, auto& regionData, auto& regionDisplayStart, const auto& maxTime, const auto& limitTime, const auto& color1, const auto& color2) {
         const glm::vec2 candleRegionSize = region.Size();
         const auto pDrawList = ImGui::GetWindowDrawList();
-        const auto MaxCandleColor = ThemeManager::Instance().Get(color_Error);
+        const auto MaxCandleColor = SettingManager::GetVec4f(color_Error);
 
         auto timePerPixel = framesDuration / int64_t(region.Width());
 
@@ -684,7 +685,7 @@ NVec2ll ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 
             if (currentRegion < maxRegion)
             {
-                NVec2ll regionTimeRange;
+                glm::u64vec2 regionTimeRange;
                 regionTimeRange.x = regionData[int64_t(currentRegion)].startTime;
 
                 // Collect durations of all candles within this pixel
@@ -695,7 +696,7 @@ NVec2ll ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
                     auto& data = regionData[int64_t(currentRegion)];
                     regionTimeRange.y = data.endTime;
 
-                    NVec2ll overlap;
+                    glm::u64vec2 overlap;
                     overlap.x = std::max(data.startTime, pixelTime);
                     overlap.y = std::min(data.endTime, pixelTime + timePerPixel);
 
@@ -783,10 +784,10 @@ NVec2ll ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
         assert(dragTimeRange.x <= dragTimeRange.y);
     };
 
-    const auto FrameCandleColor = ThemeManager::Instance().Get(color_AccentColor1);
-    const auto FrameCandleAltColor = ThemeManager::Instance().Get(color_AccentColor2) * .85f;
-    const auto RegionCandleColor = ThemeManager::Instance().Get(color_Warning);
-    const auto RegionCandleAltColor = ThemeManager::Instance().Get(color_Warning) * .85f;
+    const auto FrameCandleColor = GlobalSettingManager::Instance().GetVec4f(color_AccentColor1);
+    const auto FrameCandleAltColor = GlobalSettingManager::Instance().GetVec4f(color_AccentColor2) * .85f;
+    const auto RegionCandleColor = GlobalSettingManager::Instance().GetVec4f(color_Warning);
+    const auto RegionCandleAltColor = GlobalSettingManager::Instance().GetVec4f(color_Warning) * .85f;
     const auto framesStartTime = gFrameData[int64_t(gFrameCandleRange.x)].startTime;
     const auto framesDuration = gFrameData[int64_t(gFrameCandleRange.y)].startTime - framesStartTime;
 
@@ -798,7 +799,7 @@ NVec2ll ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 
     if (dragTimeRange.x > dragTimeRange.y)
     {
-        dragTimeRange = NVec2ll(0);
+        dragTimeRange = glm::u64vec2(0);
     }
     return dragTimeRange;
 }
@@ -1140,4 +1141,3 @@ void ShowProfile(bool* opened)
 } // namespace Profiler
 } // namespace Zest
 
-#endif
