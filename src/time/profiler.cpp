@@ -4,8 +4,10 @@
 
 #include <zest/math/imgui_glm.h>
 #include <zest/math/math_utils.h>
-#include <zest/time/profiler.h>
+#include <zest/string/murmur_hash.h>
 #include <zest/ui/dpi.h>
+
+#include <zest/time/profiler.h>
 #include <zest/settings/settings.h>
 
 #include "imgui_internal.h"
@@ -42,6 +44,11 @@ namespace Profiler
 {
 
 ProfileSettings settings;
+
+Zest::StringId(c_AccentColor1);
+Zest::StringId(c_AccentColor2);
+Zest::StringId(c_Warning);
+Zest::StringId(c_Error);
 
 namespace
 {
@@ -617,7 +624,7 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
     auto drawRegions = [&dragTimeRange](const auto maxRegion, const auto& region, const auto& framesStartTime, const auto& framesDuration, auto& regionData, auto& regionDisplayStart, const auto& maxTime, const auto& limitTime, const auto& color1, const auto& color2) {
         const glm::vec2 candleRegionSize = region.Size();
         const auto pDrawList = ImGui::GetWindowDrawList();
-        const auto MaxCandleColor = SettingManager::GetVec4f(color_Error);
+        const auto MaxCandleColor = GlobalSettingManager::Instance().GetVec4f(c_Error);
 
         auto timePerPixel = framesDuration / int64_t(region.Width());
 
@@ -784,10 +791,10 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
         assert(dragTimeRange.x <= dragTimeRange.y);
     };
 
-    const auto FrameCandleColor = GlobalSettingManager::Instance().GetVec4f(color_AccentColor1);
-    const auto FrameCandleAltColor = GlobalSettingManager::Instance().GetVec4f(color_AccentColor2) * .85f;
-    const auto RegionCandleColor = GlobalSettingManager::Instance().GetVec4f(color_Warning);
-    const auto RegionCandleAltColor = GlobalSettingManager::Instance().GetVec4f(color_Warning) * .85f;
+    const auto FrameCandleColor = GlobalSettingManager::Instance().GetVec4f(c_AccentColor1);
+    const auto FrameCandleAltColor = GlobalSettingManager::Instance().GetVec4f(c_AccentColor2) * .85f;
+    const auto RegionCandleColor = GlobalSettingManager::Instance().GetVec4f(c_Warning);
+    const auto RegionCandleAltColor = GlobalSettingManager::Instance().GetVec4f(c_Warning) * .85f;
     const auto framesStartTime = gFrameData[int64_t(gFrameCandleRange.x)].startTime;
     const auto framesDuration = gFrameData[int64_t(gFrameCandleRange.y)].startTime - framesStartTime;
 
@@ -884,7 +891,7 @@ void ShowProfile(bool* opened)
     double pixelsPerTime;
     double timePerPixels;
 
-    auto setTimeRange = [&](NVec2<int64_t> range) {
+    auto setTimeRange = [&](glm::i64vec2 range) {
         assert(range.y >= range.x);
         if ((range.y < range.x) || ((range.y - range.x) < 1000))
         {
@@ -918,7 +925,7 @@ void ShowProfile(bool* opened)
     if (!gPaused)
     {
         auto duration = duration_cast<nanoseconds>(milliseconds(50)).count();
-        setTimeRange(NVec2<int64_t>(now - duration, now));
+        setTimeRange(glm::i64vec2(now - duration, now));
     }
     else
     {
@@ -944,7 +951,7 @@ void ShowProfile(bool* opened)
     };
 
     regionSize.y -= 2;
-    glm::vec2 mouseClick;
+    glm::vec2 mouseClick = glm::vec2(0.0f);
     ImGui::InvisibleButton("##FramesSectionsWindowDummy", regionSize);
     if (ImGui::IsItemActive())
     {
@@ -955,7 +962,7 @@ void ShowProfile(bool* opened)
             auto delta = ImGui::GetMouseDragDelta(0).x;
             auto dragTimeDelta = int64_t((delta / regionSize.x) * visibleDuration);
             ImGui::ResetMouseDragDelta(0);
-            auto newTime = NVec2<int64_t>(gTimeRange.x - dragTimeDelta, gTimeRange.y - dragTimeDelta);
+            auto newTime = glm::i64vec2(gTimeRange.x - dragTimeDelta, gTimeRange.y - dragTimeDelta);
             if ((newTime.y < maxTime && newTime.x >= minTime))
             {
                 setTimeRange(newTime);
@@ -979,13 +986,13 @@ void ShowProfile(bool* opened)
         auto tenPercent = (int64_t)((gTimeRange.y - gTimeRange.x) * .1 * zoom);
 
         auto mouseTime = timeFromX(localMousePos);
-        auto newTime = NVec2<int64_t>((gTimeRange.x + tenPercent), gTimeRange.y - tenPercent);
+        auto newTime = glm::i64vec2((gTimeRange.x + tenPercent), gTimeRange.y - tenPercent);
 
         setTimeRange(newTime);
 
         auto newMouseTime = timeFromX(localMousePos);
         auto timeDelta = int64_t(newMouseTime - mouseTime);
-        newTime = NVec2<int64_t>(gTimeRange.x - timeDelta, gTimeRange.y - timeDelta);
+        newTime = glm::i64vec2(gTimeRange.x - timeDelta, gTimeRange.y - timeDelta);
         setTimeRange(newTime);
     }
 
@@ -1136,6 +1143,14 @@ void ShowProfile(bool* opened)
 
     ImGui::PopStyleVar(1);
     ImGui::End();
+}
+
+const glm::vec4& ColorFromName(const char* pszName, const uint32_t len)
+{
+    static const glm::vec4 col(1.0f);
+    return col;
+    //const auto col = murmur_hash(pszName, len, 0);
+    //return Zest::GlobalSettingManager::Instance().GetVec4f(Zest::GlobalSettingManager::Instance().GetUniqueColor(col));
 }
 
 } // namespace Profiler

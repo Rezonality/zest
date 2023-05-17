@@ -3,6 +3,8 @@
 #include <thread>
 #include <zest/time/timer.h>
 #include <zest/math/math.h>
+#include <zest/math/math_utils.h>
+#include <zest/settings/settings.h>
 
 namespace Zest
 {
@@ -111,9 +113,9 @@ public:
     using mutex_type = _Mutex;
 
     explicit profile_lock_guard(_Mutex& _Mtx, const char* name = "Mutex", const char* szFile = nullptr, int line = 0) : _MyMutex(_Mtx) { // construct and lock
-        //PushSectionBase(name, PROFILE_COL_LOCK, szFile, line);
+        PushSectionBase(name, PROFILE_COL_LOCK, szFile, line);
         _MyMutex.lock();
-        //PopSection();
+        PopSection();
     }
 
     profile_lock_guard(_Mutex& _Mtx, std::adopt_lock_t) : _MyMutex(_Mtx) {} // construct but don't lock
@@ -132,13 +134,14 @@ private:
 #define LOCK_GUARD(var, name) \
 ::Zest::Profiler::profile_lock_guard name##_lock(var, #name, __FILE__, __LINE__)
 
+const glm::vec4& ColorFromName(const char* pszName, const uint32_t len);
+
 } // namespace Profiler
 } // namespace Zest
 
 // PROFILE_SCOPE(MyNameWithoutQuotes)
-//Zest::Theme::ThemeManager::ColorFromName(#name, sizeof(#name)));
 #define PROFILE_SCOPE(name) \
-static const uint32_t name##_color = Zest::ToPackedARGB(glm::vec4(1.0f)); \
+static const uint32_t name##_color = Zest::ToPackedARGB(Zest::Profiler::ColorFromName(#name, uint32_t(strlen(#name)))); \
 Zest::Profiler::ProfileScope name##_scope(#name, name##_color, __FILE__, __LINE__);
 
 // PROFILE_SCOPE(char*, ImColor32 bit value)
