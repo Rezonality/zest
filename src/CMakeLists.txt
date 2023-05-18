@@ -15,7 +15,6 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/src/file/toml_utils.cpp
     ${ZEST_ROOT}/src/math/math_utils.cpp
     ${ZEST_ROOT}/src/settings/settings.cpp
-    ${ZEST_ROOT}/src/string/murmur_hash.cpp
     ${ZEST_ROOT}/src/string/string_utils.cpp
     ${ZEST_ROOT}/src/time/profiler.cpp
     ${ZEST_ROOT}/src/time/time_provider.cpp

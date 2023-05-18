@@ -45,10 +45,10 @@ namespace Profiler
 
 ProfileSettings settings;
 
-Zest::StringId c_AccentColor1("c_AccentColor1");
-Zest::StringId c_AccentColor2("c_AccentColor2");
-Zest::StringId c_Warning("c_Warning");
-Zest::StringId c_Error("c_Error");
+DECLARE_SETTING_VALUE(c_AccentColor1)
+DECLARE_SETTING_VALUE(c_AccentColor2);
+DECLARE_SETTING_VALUE(c_Warning);
+DECLARE_SETTING_VALUE(c_Error);
 
 namespace
 {
@@ -642,7 +642,7 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
     auto drawRegions = [&dragTimeRange](const auto maxRegion, const auto& region, const auto& framesStartTime, const auto& framesDuration, auto& regionData, auto& regionDisplayStart, const auto& maxTime, const auto& limitTime, const auto& color1, const auto& color2) {
         const glm::vec2 candleRegionSize = region.Size();
         const auto pDrawList = ImGui::GetWindowDrawList();
-        const auto MaxCandleColor = GlobalSettingManager::Instance().GetVec4f(c_Error);
+        const auto MaxCandleColor = GlobalSettingManager::Instance().GetVec4f(c_Error, glm::vec4(1.0f, 0.1f, 0.1f, 1.0f));
 
         auto timePerPixel = framesDuration / int64_t(region.Width());
 
@@ -820,10 +820,10 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
         assert(dragTimeRange.x <= dragTimeRange.y);
     };
 
-    const auto FrameCandleColor = GlobalSettingManager::Instance().GetVec4f(c_AccentColor1);
-    const auto FrameCandleAltColor = GlobalSettingManager::Instance().GetVec4f(c_AccentColor2) * .85f;
-    const auto RegionCandleColor = GlobalSettingManager::Instance().GetVec4f(c_Warning);
-    const auto RegionCandleAltColor = GlobalSettingManager::Instance().GetVec4f(c_Warning) * .85f;
+    const auto FrameCandleColor = GlobalSettingManager::Instance().GetVec4f(c_AccentColor1, glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
+    const auto FrameCandleAltColor = GlobalSettingManager::Instance().GetVec4f(c_AccentColor2, glm::vec4(1.0f, 0.4f, 0.4f, 1.0f));
+    const auto RegionCandleColor = GlobalSettingManager::Instance().GetVec4f(c_Warning, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
+    const auto RegionCandleAltColor = RegionCandleColor * 0.8f;
     const auto framesStartTime = gFrameData[int64_t(gFrameCandleRange.x)].startTime;
     const auto framesDuration = gFrameData[int64_t(gFrameCandleRange.y)].startTime - framesStartTime;
 
@@ -843,12 +843,6 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 // Show the profiler window
 void ShowProfile(bool* opened)
 {
-    if (!ImGui::Begin("Profiler", opened))
-    {
-        ImGui::End();
-        return;
-    }
-
     PROFILE_SCOPE(Profile_UI);
 
     bool pause = gPaused;
@@ -882,7 +876,7 @@ void ShowProfile(bool* opened)
     static float scale = 1.0f;
 
     ImGui::PushItemWidth(100 * dpi.scaleFactorXY.x);
-    ImGui::SliderFloat("Scale", &scale, .5f, 1.0f, "%.2f");
+    ImGui::SliderFloat("Scale", &scale, .5f, 2.0f, "%.2f");
 
     // Ignore the first frame, which is likely a long delay due to
     // the time that expires after this profiler is created and the first
@@ -890,7 +884,6 @@ void ShowProfile(bool* opened)
     const uint32_t MaxFrame = gCurrentFrame - 2;
     if (gCurrentFrame < MinLeadInFrames)
     {
-        ImGui::End();
         return;
     }
 
@@ -1171,7 +1164,6 @@ void ShowProfile(bool* opened)
     }
 
     ImGui::PopStyleVar(1);
-    ImGui::End();
 }
 
 const glm::vec4& ColorFromName(const char* pszName, const uint32_t len)

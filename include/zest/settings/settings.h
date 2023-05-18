@@ -221,10 +221,16 @@ public:
         return theme[id].ToVec2f();
     }
 
-    glm::vec4 GetVec4f(const StringId& id)
+    glm::vec4 GetVec4f(const StringId& id, const glm::vec4& def = glm::vec4(0.0f))
     {
         auto& theme = m_themes[m_currentSetting];
-        return theme[id].ToVec4f();
+        auto itr = theme.find(id);
+        if (itr != theme.end())
+        {
+            return itr->second.ToVec4f();
+        }
+        theme[id] = def;
+        return def;
     }
     
     glm::ivec2 GetVec2i(const StringId& id)
@@ -243,12 +249,6 @@ public:
     std::string m_currentSetting = "Default Setting";
 };
 
-#ifdef DECLARE_SETTINGS
-#define DECLARE_SETTING_VALUE(name) Zest::StringId name(#name);
-#else
-#define DECLARE_SETTING_VALUE(name) extern Zest::StringId name;
-#endif
-
 class GlobalSettingManager : public SettingManager
 {
 public:
@@ -258,6 +258,8 @@ public:
         return setting;
     }
 };
+
+#define DECLARE_SETTING_VALUE(name) inline Zest::StringId name(#name);
 
 // Grid
 DECLARE_SETTING_VALUE(s_windowSize);
