@@ -7,8 +7,8 @@
 #include <zest/string/murmur_hash.h>
 #include <zest/ui/dpi.h>
 
-#include <zest/time/profiler.h>
 #include <zest/settings/settings.h>
+#include <zest/time/profiler.h>
 
 #include "imgui_internal.h"
 #include <fmt/format.h>
@@ -45,10 +45,10 @@ namespace Profiler
 
 ProfileSettings settings;
 
-Zest::StringId(c_AccentColor1);
-Zest::StringId(c_AccentColor2);
-Zest::StringId(c_Warning);
-Zest::StringId(c_Error);
+Zest::StringId c_AccentColor1("c_AccentColor1");
+Zest::StringId c_AccentColor2("c_AccentColor2");
+Zest::StringId c_Warning("c_Warning");
+Zest::StringId c_Error("c_Error");
 
 namespace
 {
@@ -89,7 +89,7 @@ NRectf gCandleDragRect;
 glm::vec2 gFrameCandleRange = glm::vec2(0.0f, 0.0f);
 
 // Visible time range
-glm::u64vec2 gTimeRange = glm::u64vec2(0, 0);
+glm::i64vec2 gTimeRange = glm::i64vec2(0, 0);
 
 // Frames visible inside the current time range
 glm::ivec2 gVisibleFrames = glm::ivec2(0, 0);
@@ -699,7 +699,9 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 
                     col = Zest::Mix(col, MaxCandleColor, pendingColorLerp);
 
-                    pDrawList->AddRectFilled(ImVec2(lastX, region.Bottom() - 1.0f - std::max(1.0f, (pendingCandleHeight * region.Height() - 2.0f))), ImVec2(pixel, region.Bottom() - 1.0f), ToPackedABGR(col));
+                    auto minRect = ImVec2(lastX, region.Bottom() - 1.0f - std::max(1.0f, (pendingCandleHeight * region.Height() - 2.0f)));
+                    auto maxRect = ImVec2(pixel, region.Bottom() - 1.0f);
+                    pDrawList->AddRectFilled(minRect, maxRect, ToPackedABGR(col));
                 }
 
                 // Remember we aren't in a region now
@@ -715,7 +717,7 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 
                 // Collect durations of all candles within this pixel
                 uint32_t count = 0;
-                int64_t totalDuration = 0;
+                float totalDuration = 0.0;
                 while (currentRegion < maxRegion)
                 {
                     auto& data = regionData[int64_t(currentRegion)];
@@ -778,8 +780,17 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 
                             col = Zest::Mix(col, MaxCandleColor, pendingColorLerp);
 
-                            pDrawList->AddRectFilled(ImVec2(lastX, region.Bottom() - 1.0f - std::max(1.0f, (pendingCandleHeight * region.Height() - 2.0f))), ImVec2(pixel, region.Bottom() - 1.0f), ToPackedABGR(col));
-                            lastX = -1; 
+                            auto minRect = ImVec2(lastX, region.Bottom() - 1.0f - std::max(1.0f, (pendingCandleHeight * region.Height() - 2.0f)));
+                            auto maxRect = ImVec2(pixel, region.Bottom() - 1.0f);
+                            pDrawList->AddRectFilled(minRect, maxRect, ToPackedABGR(col));
+
+                            if (ImGui::IsMouseHoveringRect(minRect, maxRect))
+                            {
+                                auto tip = fmt::format("{}: {:.4f}%", currentRegion, ((maxRect.y - minRect.y) / region.Height()) * 100.0f);
+                                ImGui::SetTooltip("%s", tip.c_str());
+                            }
+
+                            lastX = -1;
                         }
                     }
                     pendingCandleHeight = candleHeight;
@@ -1171,4 +1182,3 @@ const glm::vec4& ColorFromName(const char* pszName, const uint32_t len)
 
 } // namespace Profiler
 } // namespace Zest
-

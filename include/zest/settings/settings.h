@@ -194,6 +194,7 @@ class SettingManager
 {
 public:
 
+    void DrawGUI(const std::string& name);
     bool Save(const std::filesystem::path& path);
     bool Load(const std::filesystem::path& path);
     void Set(const StringId& id, const SettingValue& value)

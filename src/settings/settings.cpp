@@ -1,10 +1,86 @@
 #include <zest/file/toml_utils.h>
 #include <toml++/toml.h>
 
+#pragma warning(disable: 4005)
+#include <imgui.h>
+#pragma warning(default: 4005)
+
 #define DECLARE_SETTINGS
 #include <zest/settings/settings.h>
 
-namespace Zest {
+namespace Zest
+{
+
+void SettingManager::DrawGUI(const std::string& name)
+{
+    std::vector<Zest::StringId> themeNames;
+
+    if (ImGui::Begin(name.c_str()))
+    {
+
+        for (auto& [mstr, val] : m_themes[m_currentSetting])
+        {
+            themeNames.push_back(mstr);
+        }
+
+        std::sort(themeNames.begin(), themeNames.end(), [](auto& lhs, auto& rhs) {
+            return lhs.ToString().substr(2) < rhs.ToString().substr(2);
+        });
+
+        std::string last;
+        auto& themeMap = m_themes[m_currentSetting];
+        for (auto& id : themeNames)
+        {
+            auto name = id.ToString();
+            auto& val = themeMap[id];
+            auto prefix = name.substr(0, 2);
+
+            if (!last.empty() && (last != name.substr(2, 4)))
+            {
+                ImGui::NewLine();
+            }
+            last = name.substr(2, 4);
+
+            if (prefix == "c_")
+            {
+                glm::vec4 v = val.ToVec4f();
+                if (ImGui::ColorEdit4(name.c_str(), &v[0]))
+                {
+                    val.f4 = v;
+                }
+            }
+            else if (prefix == "b_")
+            {
+                bool v = val.ToBool();
+                if (ImGui::Checkbox(name.c_str(), &v))
+                {
+                    val.b = v;
+                }
+            }
+            else if (prefix == "s_")
+            {
+                float f = 0.0f;
+                switch (val.type)
+                {
+                case SettingType::Float:
+                    ImGui::DragFloat(name.c_str(), &val.f);
+                    break;
+                case SettingType::Vec2f:
+                    ImGui::DragFloat2(name.c_str(), &val.f);
+                    break;
+                case SettingType::Vec3f:
+                    ImGui::DragFloat3(name.c_str(), &val.f);
+                    break;
+                case SettingType::Vec4f:
+                    ImGui::DragFloat4(name.c_str(), &val.f);
+                    break;
+                }
+            }
+        }
+    }
+    ImGui::End();
+}
+
 bool SettingManager::Save(const std::filesystem::path& path)
 {
     toml::table tbl;

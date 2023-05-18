@@ -1,5 +1,6 @@
 #pragma once
 #include <mutex>
+#include <zest/time/profiler.h>
 
 // Consumer always lock waits for memory
 // Producer never locks, but try-lock swaps after locking
@@ -16,6 +17,8 @@ public:
 
     void ReleaseProducerMemory()
     {
+        PROFILE_SCOPE_STR("ReleaseProducer", PROFILE_COL_LOCK);
+
         // Swap if possible
         if (m_swapMutex.try_lock())
         {
@@ -26,13 +29,14 @@ public:
 
     T& GetConsumerMemory()
     {
-        PROFILE_SCOPE_STR("LazyMem_Lock", PROFILE_COL_LOCK);
+        PROFILE_SCOPE_STR("GetConsumer", PROFILE_COL_LOCK);
         m_swapMutex.lock();
         return memory[1 - producerMemory];
     }
 
     void ReleaseConsumerMemory()
     {
+        PROFILE_SCOPE_STR("ReleaseConsumer", PROFILE_COL_LOCK);
         m_swapMutex.unlock();
     };
 
