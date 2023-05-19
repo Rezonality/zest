@@ -342,7 +342,7 @@ void file_copy_settings()
 {
 }
 
-fs::path file_init_settings(const std::string& appName, const fs::path& defaultSettings, bool forceReset)
+fs::path file_init_settings(const std::string& appName, const fs::path& defaultSettings, const fs::path& targetPath, bool forceReset)
 {
     // Try really hard to find somewhere to put stuff!
     auto settingsPath = file_appdata_path();
@@ -356,7 +356,8 @@ fs::path file_init_settings(const std::string& appName, const fs::path& defaultS
     }
 
     // TOOD: Error message on no path
-    settingsPath = settingsPath / appName / "settings" / "settings.toml";
+    settingsPath = settingsPath / appName / targetPath;
+    LOG(DBG, "Settings Path: " << settingsPath.string());
     if (!fs::exists(settingsPath))
     {
         fs::create_directories(settingsPath.parent_path());

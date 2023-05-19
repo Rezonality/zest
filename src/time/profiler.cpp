@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cassert>
+#include <utility>
 
 #include <zest/math/imgui_glm.h>
 #include <zest/math/math_utils.h>
@@ -638,11 +639,14 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
         }
     }
 
+    const auto& settings = GlobalSettingsManager::Instance();
+    auto theme = settings.GetCurrentTheme();
+
     glm::u64vec2 dragTimeRange = glm::u64vec2(0);
-    auto drawRegions = [&dragTimeRange](const auto maxRegion, const auto& region, const auto& framesStartTime, const auto& framesDuration, auto& regionData, auto& regionDisplayStart, const auto& maxTime, const auto& limitTime, const auto& color1, const auto& color2) {
+    auto drawRegions = [&](const auto maxRegion, const auto& region, const auto& framesStartTime, const auto& framesDuration, auto& regionData, auto& regionDisplayStart, const auto& maxTime, const auto& limitTime, const auto& color1, const auto& color2) {
         const glm::vec2 candleRegionSize = region.Size();
         const auto pDrawList = ImGui::GetWindowDrawList();
-        const auto MaxCandleColor = GlobalSettingManager::Instance().GetVec4f(c_Error, glm::vec4(1.0f, 0.1f, 0.1f, 1.0f));
+        const auto MaxCandleColor = settings.GetVec4f(theme, c_Error, glm::vec4(1.0f, 0.1f, 0.1f, 1.0f));
 
         auto timePerPixel = framesDuration / int64_t(region.Width());
 
@@ -820,9 +824,9 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
         assert(dragTimeRange.x <= dragTimeRange.y);
     };
 
-    const auto FrameCandleColor = GlobalSettingManager::Instance().GetVec4f(c_AccentColor1, glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
-    const auto FrameCandleAltColor = GlobalSettingManager::Instance().GetVec4f(c_AccentColor2, glm::vec4(1.0f, 0.4f, 0.4f, 1.0f));
-    const auto RegionCandleColor = GlobalSettingManager::Instance().GetVec4f(c_Warning, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
+    const auto FrameCandleColor = settings.GetVec4f(theme, c_AccentColor1, glm::vec4(1.0f, 0.2f, 0.2f, 1.0f));
+    const auto FrameCandleAltColor = settings.GetVec4f(theme, c_AccentColor2, glm::vec4(1.0f, 0.4f, 0.4f, 1.0f));
+    const auto RegionCandleColor = settings.GetVec4f(theme, c_Warning, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
     const auto RegionCandleAltColor = RegionCandleColor * 0.8f;
     const auto framesStartTime = gFrameData[int64_t(gFrameCandleRange.x)].startTime;
     const auto framesDuration = gFrameData[int64_t(gFrameCandleRange.y)].startTime - framesStartTime;

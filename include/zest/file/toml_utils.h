@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <toml++/toml.h>
 
+#include <zest/string/string_utils.h>
+
 using namespace std::string_view_literals;
 
 template<typename VecT, class T>
@@ -72,3 +74,16 @@ void toml_write_vec4(toml::table& table, const std::string& strEntry, const VecT
     table.insert_or_assign(strEntry, toml::array{ value.x, value.y, value.z, value.w });
 }
 
+inline toml::table* toml_sub_table(toml::table& tbl, const std::string& search)
+{
+    // Warning, this nukes the subtable; needs repair
+    auto path = Zest::string_split(search, ".");
+
+    toml::table* pParent = &tbl;
+    for (auto& sub : path)
+    {
+        auto itr = pParent->insert_or_assign(sub, toml::table{});
+        pParent = itr.first->second.as_table();
+    }
+    return pParent;
+}

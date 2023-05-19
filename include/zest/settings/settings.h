@@ -1,12 +1,26 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
 #include <glm/glm.hpp>
 #include <unordered_map>
 
+#include <toml++/toml.h>
 #include <zest/string/string_utils.h>
 
-namespace Zest {
+namespace Zest
+{
+
+#define DECLARE_SETTING_VALUE(name) inline Zest::StringId name(#name);
+#define DECLARE_SETTING_GROUP(group, name) inline Zest::StringId group(#name);
+
+DECLARE_SETTING_GROUP(g_defaultTheme, themes.defaultTheme);
+DECLARE_SETTING_GROUP(g_window, window);
+
+// Grid
+DECLARE_SETTING_VALUE(s_windowSize);
+DECLARE_SETTING_VALUE(b_windowMaximized);
+DECLARE_SETTING_VALUE(s_windowPosition);
 
 enum class SettingType
 {
@@ -190,80 +204,97 @@ struct SettingValue
 };
 
 using SettingMap = std::unordered_map<StringId, SettingValue>;
-class SettingManager
+using GroupMap = std::unordered_map<StringId, SettingMap>;
+struct TreeNode
+{
+    std::string name;
+    std::unordered_map<std::string, TreeNode> children;
+    std::vector<std::pair<StringId, StringId>> values;
+};
+
+using fnLoadSettings = std::function<bool(const std::string& location, const toml::table&)>;
+using fnSaveSettings = std::function<void(toml::table&)>;
+struct SettingsClient
+{
+    fnLoadSettings pfnLoad; 
+    fnSaveSettings pfnSave; 
+};
+
+class SettingsManager
 {
 public:
-
-    void DrawGUI(const std::string& name);
-    bool Save(const std::filesystem::path& path);
+    void AddClient(SettingsClient client);
+    void DrawTreeNode(const TreeNode& node) const;
+    void DrawGUI(const std::string& name) const;
+    bool Save(const std::filesystem::path& path) const;
     bool Load(const std::filesystem::path& path);
-    void Set(const StringId& id, const SettingValue& value)
+    void Set(const StringId& section, const StringId& id, const SettingValue& value)
     {
-        auto& slot = m_themes[m_currentSetting][id];
-        slot = value;
+        m_sections[section][id] = value;
     }
 
-    const SettingValue& Get(const StringId& id)
+    const SettingValue& Get(const StringId& section, const StringId& id) const
     {
-        auto& theme = m_themes[m_currentSetting];
-        return theme[id];
+        auto& sectionMap = m_sections[section];
+        return sectionMap[id];
     }
 
-    float GetFloat(const StringId& id)
+    float GetFloat(const StringId& section, const StringId& id) const
     {
-        auto& theme = m_themes[m_currentSetting];
-        return theme[id].ToFloat();
+        auto& sectionMap = m_sections[section];
+        return sectionMap[id].ToFloat();
     }
 
-    glm::vec2 GetVec2f(const StringId& id)
+    glm::vec2 GetVec2f(const StringId& section, const StringId& id) const
     {
-        auto& theme = m_themes[m_currentSetting];
-        return theme[id].ToVec2f();
+        auto& sectionMap = m_sections[section];
+        return sectionMap[id].ToVec2f();
     }
 
-    glm::vec4 GetVec4f(const StringId& id, const glm::vec4& def = glm::vec4(0.0f))
+    glm::vec4 GetVec4f(const StringId& section, const StringId& id, const glm::vec4& def = glm::vec4(0.0f)) const
     {
-        auto& theme = m_themes[m_currentSetting];
-        auto itr = theme.find(id);
-        if (itr != theme.end())
+        auto& sectionMap = m_sections[section];
+        auto itr = sectionMap.find(id);
+        if (itr != sectionMap.end())
         {
             return itr->second.ToVec4f();
         }
-        theme[id] = def;
+        sectionMap[id] = def;
         return def;
     }
-    
-    glm::ivec2 GetVec2i(const StringId& id)
+
+    glm::ivec2 GetVec2i(const StringId& section, const StringId& id) const
     {
-        auto& theme = m_themes[m_currentSetting];
-        return theme[id].ToVec2i();
+        auto& sectionMap = m_sections[section];
+        return sectionMap[id].ToVec2i();
     }
 
-    bool GetBool(const StringId& id)
+    bool GetBool(const StringId& section, const StringId& id) const
     {
-        auto& theme = m_themes[m_currentSetting];
-        return theme[id].ToBool();
+        auto& sectionMap = m_sections[section];
+        return sectionMap[id].ToBool();
     }
 
-    std::unordered_map<std::string, SettingMap> m_themes;
-    std::string m_currentSetting = "Default Setting";
+    const StringId& GetCurrentTheme() const;
+
+    void BuildTree() const;
+
+private:
+    mutable GroupMap m_sections;
+    StringId m_currentTheme = g_defaultTheme;
+    mutable bool m_dirty = true;
+    mutable TreeNode m_root;
+    std::vector<SettingsClient> m_clients;
 };
 
-class GlobalSettingManager : public SettingManager
+class GlobalSettingsManager : public SettingsManager
 {
 public:
-    static GlobalSettingManager& Instance()
+    static GlobalSettingsManager& Instance()
     {
-        static GlobalSettingManager setting;
+        static GlobalSettingsManager setting;
         return setting;
     }
 };
 
-#define DECLARE_SETTING_VALUE(name) inline Zest::StringId name(#name);
-
-// Grid
-DECLARE_SETTING_VALUE(s_windowSize);
-DECLARE_SETTING_VALUE(b_windowMaximized);
-DECLARE_SETTING_VALUE(s_windowPosition);
-
-}
+} // namespace Zest

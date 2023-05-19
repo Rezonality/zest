@@ -1,9 +1,9 @@
+#include <fmt/format.h>
 #include <zest/file/toml_utils.h>
-#include <toml++/toml.h>
 
-#pragma warning(disable: 4005)
+#pragma warning(disable : 4005)
 #include <imgui.h>
-#pragma warning(default: 4005)
+#pragma warning(default : 4005)
 
 #define DECLARE_SETTINGS
 #include <zest/settings/settings.h>
@@ -11,35 +11,52 @@
 namespace Zest
 {
 
-void SettingManager::DrawGUI(const std::string& name)
+void SettingsManager::BuildTree() const
 {
-    std::vector<Zest::StringId> themeNames;
+    m_root.children.clear();
+    m_root.name = ">";
 
-    if (ImGui::Begin(name.c_str()))
+    for (const auto& [name, val] : m_sections)
     {
-
-        for (auto& [mstr, val] : m_themes[m_currentSetting])
+        TreeNode* pNode = &m_root;
+        auto dirs = string_split(name.ToString(), ".");
+        for (auto& d : dirs)
         {
-            themeNames.push_back(mstr);
+            pNode = &pNode->children[d];
+            pNode->name = d;
         }
 
-        std::sort(themeNames.begin(), themeNames.end(), [](auto& lhs, auto& rhs) {
-            return lhs.ToString().substr(2) < rhs.ToString().substr(2);
-        });
-
-        std::string last;
-        auto& themeMap = m_themes[m_currentSetting];
-        for (auto& id : themeNames)
+        for (const auto& [id, setting] : val)
         {
-            auto name = id.ToString();
-            auto& val = themeMap[id];
-            auto prefix = name.substr(0, 2);
+            pNode->values.push_back(std::make_pair(name, id));
+        }
 
-            if (!last.empty() && (last != name.substr(2, 4)))
-            {
-                ImGui::NewLine();
-            }
-            last = name.substr(2, 4);
+        // Sort by name
+        std::sort(pNode->values.begin(), pNode->values.end(), [&](auto lhs, auto rhs) {
+            return lhs.second.ToString() < rhs.second.ToString();
+        });
+    }
+}
+
+const StringId& SettingsManager::GetCurrentTheme() const
+{
+    return m_currentTheme;
+}
+
+void SettingsManager::DrawTreeNode(const TreeNode& node) const
+{
+    // Display the tree node with ImGui::TreeNode
+    if (ImGui::TreeNode(node.name.c_str()))
+    {
+        for (auto& [section, v] : node.values)
+        {
+            auto name = v.ToString();
+
+            // Get the original value
+            auto& val = m_sections[section][v];
+
+            auto prefix = name.substr(0, 2);
+            name = name.substr(2);
 
             if (prefix == "c_")
             {
@@ -62,65 +79,104 @@ void SettingManager::DrawGUI(const std::string& name)
                 float f = 0.0f;
                 switch (val.type)
                 {
-                case SettingType::Float:
-                    ImGui::DragFloat(name.c_str(), &val.f);
-                    break;
-                case SettingType::Vec2f:
-                    ImGui::DragFloat2(name.c_str(), &val.f);
-                    break;
-                case SettingType::Vec3f:
-                    ImGui::DragFloat3(name.c_str(), &val.f);
-                    break;
-                case SettingType::Vec4f:
-                    ImGui::DragFloat4(name.c_str(), &val.f);
-                    break;
+                    case SettingType::Float:
+                        ImGui::DragFloat(name.c_str(), &val.f);
+                        break;
+                    case SettingType::Vec2f:
+                        ImGui::DragFloat2(name.c_str(), &val.f);
+                        break;
+                    case SettingType::Vec3f:
+                        ImGui::DragFloat3(name.c_str(), &val.f);
+                        break;
+                    case SettingType::Vec4f:
+                        ImGui::DragFloat4(name.c_str(), &val.f);
+                        break;
                 }
             }
+        }
+
+        // Children
+        for (const auto& child : node.children)
+        {
+            DrawTreeNode(child.second);
+        }
+
+        ImGui::TreePop();
+    }
+}
+
+void SettingsManager::DrawGUI(const std::string& name) const
+{
+    std::vector<Zest::StringId> sectionNames;
+
+    // TODO: Only do this on occasion
+    BuildTree();
+
+    if (ImGui::Begin(name.c_str()))
+    {
+        for (auto& [name, child] : m_root.children)
+        {
+            DrawTreeNode(child);
         }
     }
     ImGui::End();
 }
 
-bool SettingManager::Save(const std::filesystem::path& path)
+bool SettingsManager::Save(const std::filesystem::path& path) const
 {
     toml::table tbl;
-
-    for (const auto& [theme_name, values] : m_themes)
+    for (auto& client : m_clients)
     {
-        toml::table values_table;
+        client.pfnSave(tbl);
+    }
+
+    for (const auto& [section, values] : m_sections)
+    {
+        auto path = string_split(section.ToString(), ".");
+
+        toml::table* pParent = &tbl;
+        for (auto& sub : path)
+        {
+            auto itr = pParent->insert_or_assign(sub, toml::table{});
+            pParent = itr.first->second.as_table();
+        }
+
         for (const auto& [value_name, value] : values)
         {
             switch (value.type)
             {
-            case SettingType::Float:
-                values_table.insert(value_name.ToString(), value.ToFloat());
+                case SettingType::Float:
+                {
+                    pParent->insert(value_name.ToString(), value.ToFloat());
+                }
                 break;
-            case SettingType::Bool:
-                values_table.insert(value_name.ToString(), value.ToBool());
+                case SettingType::Bool:
+                {
+                    pParent->insert(value_name.ToString(), value.ToBool());
+                }
                 break;
-            case SettingType::Vec2f:
-            {
-                toml_write_vec2(values_table, value_name.ToString(), value.ToVec2f());
-            }
-            break;
-            case SettingType::Vec3f:
-            {
-                toml_write_vec3(values_table, value_name.ToString(), value.ToVec3f());
-            }
-            break;
-            case SettingType::Vec4f:
-            {
-                toml_write_vec4(values_table, value_name.ToString(), value.ToVec4f());
-            }
-            break;
-            case SettingType::Vec2i:
-            {
-                toml_write_vec2(values_table, value_name.ToString(), value.ToVec2i());
-            }
-            break;
+                case SettingType::Vec2f:
+                {
+                    toml_write_vec2(*pParent, value_name.ToString(), value.ToVec2f());
+                }
+                break;
+                case SettingType::Vec3f:
+                {
+                    toml_write_vec3(*pParent, value_name.ToString(), value.ToVec3f());
+                }
+                break;
+                case SettingType::Vec4f:
+                {
+                    toml_write_vec4(*pParent, value_name.ToString(), value.ToVec4f());
+                }
+                break;
+                case SettingType::Vec2i:
+                {
+                    toml_write_vec2(*pParent, value_name.ToString(), value.ToVec2i());
+                }
+                break;
             }
         }
-        tbl.insert(theme_name, values_table);
     }
 
     std::ofstream fs(path, std::ios_base::trunc);
@@ -128,50 +184,65 @@ bool SettingManager::Save(const std::filesystem::path& path)
     return true;
 }
 
-bool SettingManager::Load(const std::filesystem::path& path)
+bool SettingsManager::Load(const std::filesystem::path& path)
 {
     toml::table tbl;
     try
     {
         tbl = toml::parse_file(path.string());
-        for (auto& [theme, value] : tbl)
-        {
-            if (value.is_table())
+
+        std::function<void(std::string name, const toml::table&)> fnParse;
+        fnParse = [&](auto tableName, auto tbl) {
+            bool found = false;
+            for (auto& client : m_clients)
             {
-                auto theme_table = value.as_table();
-                if (theme_table)
+                if (client.pfnLoad(tableName, tbl))
                 {
-                    for (auto& [themeName, themeValue] : *theme_table)
+                    return;
+                }
+            }
+
+            for (auto& [section, value] : tbl)
+            {
+                auto sectionId = StringId(std::string(section.str()));
+                {
+                    //auto valueId = StringId(std::string(value.str()));
+                    if (value.is_table())
                     {
-                        if (themeValue.is_array())
+                        fnParse(tableName.empty() ? std::string(section.str()) : tableName + "." + std::string(section.str()), *value.as_table());
+                    }
+                    else if (value.is_array())
+                    {
+                        auto arr = value.as_array();
+                        switch (arr->size())
                         {
-                            auto name = std::string(themeName.str());
-                            auto arr = themeValue.as_array();
-                            switch (arr->size())
-                            {
                             case 2:
-                                Set(StringId(std::string(themeName.str())), toml_read_vec2(themeValue, glm::vec2(0.0f)));
+                                Set(tableName, sectionId, toml_read_vec2(value, glm::vec2(0.0f)));
                                 break;
                             case 3:
-                                Set(StringId(std::string(themeName.str())), toml_read_vec3(themeValue, glm::vec3(0.0f)));
+                                Set(tableName, sectionId, toml_read_vec3(value, glm::vec3(0.0f)));
                                 break;
                             case 4:
-                                Set(StringId(std::string(themeName.str())), toml_read_vec4(themeValue, glm::vec4(0.0f)));
+                                Set(tableName, sectionId, toml_read_vec4(value, glm::vec4(0.0f)));
                                 break;
-                            }
                         }
-                        else if (themeValue.is_floating_point())
-                        {
-                            Set(StringId(std::string(themeName.str())), (float)themeValue.as_floating_point()->get());
-                        }
-                        else if (themeValue.is_boolean())
-                        {
-                            Set(StringId(std::string(themeName.str())), (bool)themeValue.as_boolean()->get());
-                        }
+                    }
+                    else if (value.is_floating_point())
+                    {
+                        Set(tableName, sectionId, (float)value.as_floating_point()->get());
+                    }
+                    else if (value.is_boolean())
+                    {
+                        Set(tableName, sectionId, (bool)value.as_boolean()->get());
+                    }
+                    else
+                    {
+                        assert(!"Unknown reloaded setting?");
                     }
                 }
             }
-        }
+        };
+        fnParse(std::string(), tbl);
     }
     catch (const toml::parse_error&)
     {
@@ -180,4 +251,9 @@ bool SettingManager::Load(const std::filesystem::path& path)
     return true;
 }
 
-} // Zest
+void SettingsManager::AddClient(SettingsClient client)
+{
+    m_clients.push_back(client);
+}
+
+} // namespace Zest

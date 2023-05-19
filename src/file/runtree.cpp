@@ -1,3 +1,4 @@
+#include <cassert>
 #include "zest/logger/logger.h"
 
 #include "zest/file/runtree.h"
@@ -7,11 +8,25 @@ namespace Zest
 {
 fs::path runtreePath;
 
-void runtree_init(const fs::path& appRoot)
+void runtree_init(const char* pszAppPath, const char* pszBuildPath)
 {
-    fs::path basePath = appRoot;
-    basePath = basePath / "run_tree";
-    runtreePath = fs::canonical(fs::absolute(basePath));
+    auto appPath = fs::path(pszAppPath) / "run_tree";
+    if (fs::exists(appPath))
+    {
+        runtreePath = fs::canonical(appPath);
+    }
+    else
+    {
+        appPath = fs::path(pszBuildPath) / "run_tree";
+        if (fs::exists(appPath))
+        {
+            runtreePath = fs::canonical(appPath);
+        }
+        else
+        {
+            assert(!"Not found!");
+        }
+    }
     LOG(DBG, "runtree Path: " << runtreePath.string());
 }
 
@@ -33,14 +48,14 @@ fs::path runtree_find_asset_internal(const fs::path& searchPath)
     return fs::path();
 }
 
-fs::path runtree_find_asset(const fs::path& p)
+fs::path runtree_find_path(const fs::path& p)
 {
     return runtree_find_asset_internal(p);
 }
 
 std::string runtree_load_asset(const fs::path& p)
 {
-    auto path = runtree_find_asset(p);
+    auto path = runtree_find_path(p);
     return file_read(path);
 }
 
@@ -48,5 +63,6 @@ fs::path runtree_path()
 {
     return runtreePath;
 }
+
 
 } // Zest
