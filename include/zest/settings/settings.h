@@ -4,6 +4,7 @@
 #include <functional>
 #include <glm/glm.hpp>
 #include <unordered_map>
+#include <memory>
 
 #include <toml++/toml.h>
 #include <zest/string/string_utils.h>
@@ -208,7 +209,7 @@ using GroupMap = std::unordered_map<StringId, SettingMap>;
 struct TreeNode
 {
     std::string name;
-    std::unordered_map<std::string, TreeNode> children;
+    std::unordered_map<std::string, std::shared_ptr<TreeNode>> children;
     std::vector<std::pair<StringId, StringId>> values;
 };
 
@@ -223,8 +224,9 @@ struct SettingsClient
 class SettingsManager
 {
 public:
+    SettingsManager();
     void AddClient(SettingsClient client);
-    void DrawTreeNode(const TreeNode& node) const;
+    void DrawTreeNode(const std::shared_ptr<TreeNode>& spNode) const;
     void DrawGUI(const std::string& name) const;
     bool Save(const std::filesystem::path& path) const;
     bool Load(const std::filesystem::path& path);
@@ -283,7 +285,7 @@ private:
     mutable GroupMap m_sections;
     StringId m_currentTheme = g_defaultTheme;
     mutable bool m_dirty = true;
-    mutable TreeNode m_root;
+    mutable std::shared_ptr<TreeNode> m_spRoot;
     std::vector<SettingsClient> m_clients;
 };
 

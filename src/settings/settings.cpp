@@ -11,28 +11,37 @@
 namespace Zest
 {
 
+SettingsManager::SettingsManager()
+{
+    m_spRoot = std::make_shared<TreeNode>();
+}
+
 void SettingsManager::BuildTree() const
 {
-    m_root.children.clear();
-    m_root.name = ">";
+    m_spRoot->children.clear();
+    m_spRoot->name = ">";
 
     for (const auto& [name, val] : m_sections)
     {
-        TreeNode* pNode = &m_root;
+        std::shared_ptr<TreeNode> spNode = m_spRoot;
         auto dirs = string_split(name.ToString(), ".");
         for (auto& d : dirs)
         {
-            pNode = &pNode->children[d];
-            pNode->name = d;
+            if (spNode->children.find(d) == spNode->children.end())
+            {
+                spNode->children[d] = std::make_shared<TreeNode>();
+            }
+            spNode = spNode->children[d];
+            spNode->name = d;
         }
 
         for (const auto& [id, setting] : val)
         {
-            pNode->values.push_back(std::make_pair(name, id));
+            spNode->values.push_back(std::make_pair(name, id));
         }
 
         // Sort by name
-        std::sort(pNode->values.begin(), pNode->values.end(), [&](auto lhs, auto rhs) {
+        std::sort(spNode->values.begin(), spNode->values.end(), [&](auto lhs, auto rhs) {
             return lhs.second.ToString() < rhs.second.ToString();
         });
     }
@@ -43,12 +52,12 @@ const StringId& SettingsManager::GetCurrentTheme() const
     return m_currentTheme;
 }
 
-void SettingsManager::DrawTreeNode(const TreeNode& node) const
+void SettingsManager::DrawTreeNode(const std::shared_ptr<TreeNode>& spNode) const
 {
     // Display the tree node with ImGui::TreeNode
-    if (ImGui::TreeNode(node.name.c_str()))
+    if (ImGui::TreeNode(spNode->name.c_str()))
     {
-        for (auto& [section, v] : node.values)
+        for (auto& [section, v] : spNode->values)
         {
             auto name = v.ToString();
 
@@ -96,7 +105,7 @@ void SettingsManager::DrawTreeNode(const TreeNode& node) const
         }
 
         // Children
-        for (const auto& child : node.children)
+        for (const auto& child : spNode->children)
         {
             DrawTreeNode(child.second);
         }
@@ -114,9 +123,9 @@ void SettingsManager::DrawGUI(const std::string& name) const
 
     if (ImGui::Begin(name.c_str()))
     {
-        for (auto& [name, child] : m_root.children)
+        for (auto& [name, spChild] : m_spRoot->children)
         {
-            DrawTreeNode(child);
+            DrawTreeNode(spChild);
         }
     }
     ImGui::End();
