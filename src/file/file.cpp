@@ -19,7 +19,6 @@
 #ifdef WIN32
 #include "shlobj.h"
 #endif
-#undef ERROR
 
 namespace Zest
 {
@@ -269,7 +268,7 @@ fs::path file_documents_path()
             return fs::path(pathChars);
         }
     }
-    LOG(ERROR, "Search path not found");
+    LOG(ERR, "Search path not found");
     return fs::path();
 }
 
@@ -288,7 +287,7 @@ fs::path file_roaming_path()
             return fs::path(pathChars);
         }
     }
-    LOG(ERROR, "Search path not found");
+    LOG(ERR, "Search path not found");
     return fs::path();
 }
 
@@ -307,7 +306,7 @@ fs::path file_appdata_path()
             return fs::path(pathChars);
         }
     }
-    LOG(ERROR, "Search path not found");
+    LOG(ERR, "Search path not found");
     return fs::path();
 }
 #else
@@ -379,6 +378,7 @@ fs::path file_init_settings(const std::string& appName, const fs::path& defaultS
             LOG(WARNING, "Default setting file not found: " << defaultSettings.string());
         }
     }
+    LOG(DBG, "Settings Path:" << settingsPath);
     return settingsPath;
 }
 
