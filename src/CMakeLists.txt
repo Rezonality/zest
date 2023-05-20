@@ -62,6 +62,7 @@ PUBLIC
     imgui::imgui
     glm::glm
     unofficial::concurrentqueue::concurrentqueue
+    fmt::fmt
     )
 
 # Set locations for components

@@ -4,7 +4,7 @@
 //
 #include <cstdio>
 
-#define M_UNUSED(a) (void)a;
+#define UNUSED(a) (void)a;
 
 #if defined(_MSC_VER)
 #  define DECL_ALIGN(x) __declspec(align(x))
