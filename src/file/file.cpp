@@ -280,7 +280,7 @@ fs::path file_roaming_path()
         sysdir_search_path_enumeration_state state;
 
         state = sysdir_start_search_path_enumeration(
-            SYSDIR_DIRECTORY_AUTOSAVED_INFORMATION,
+            SYSDIR_DIRECTORY_DOCUMENT,
             SYSDIR_DOMAIN_MASK_USER);
         if (sysdir_get_next_search_path_enumeration(state, pathChars) != 0)
         {
@@ -299,7 +299,7 @@ fs::path file_appdata_path()
         sysdir_search_path_enumeration_state state;
 
         state = sysdir_start_search_path_enumeration(
-            SYSDIR_DIRECTORY_APPLICATION,
+            SYSDIR_DIRECTORY_DOCUMENT,
             SYSDIR_DOMAIN_MASK_USER);
         if (sysdir_get_next_search_path_enumeration(state, pathChars) != 0)
         {
