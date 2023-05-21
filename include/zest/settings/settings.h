@@ -107,6 +107,10 @@ struct SettingValue
         case SettingType::Float:
             return glm::vec2(f);
             break;
+        case SettingType::Unknown:
+            break;
+        default:
+            break;
         }
         return glm::vec2(0.0f);
     }
@@ -135,6 +139,10 @@ struct SettingValue
         case SettingType::Float:
             return glm::ivec2(int(f));
             break;
+        case SettingType::Unknown:
+            break;
+        default:
+            break;
         }
         return glm::ivec2(0);
     }
@@ -159,6 +167,10 @@ struct SettingValue
             break;
         case SettingType::Float:
             return glm::vec3(f);
+            break;
+        case SettingType::Unknown:
+            break;
+        default:
             break;
         }
         return glm::vec3(0.0f);

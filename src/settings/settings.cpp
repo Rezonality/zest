@@ -94,11 +94,16 @@ void SettingsManager::DrawTreeNode(const std::shared_ptr<TreeNode>& spNode) cons
                     case SettingType::Vec2f:
                         ImGui::DragFloat2(name.c_str(), &val.f);
                         break;
+                    case SettingType::Vec2i:
+                        ImGui::DragInt2(name.c_str(), &val.i2.x);
+                        break;
                     case SettingType::Vec3f:
                         ImGui::DragFloat3(name.c_str(), &val.f);
                         break;
                     case SettingType::Vec4f:
                         ImGui::DragFloat4(name.c_str(), &val.f);
+                        break;
+                    default:
                         break;
                 }
             }
@@ -184,6 +189,8 @@ bool SettingsManager::Save(const std::filesystem::path& path) const
                     toml_write_vec2(*pParent, value_name.ToString(), value.ToVec2i());
                 }
                 break;
+                case SettingType::Unknown:
+                    break;
             }
         }
     }
