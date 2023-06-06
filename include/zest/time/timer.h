@@ -43,7 +43,7 @@ enum class TimerSample : uint32_t
 template<typename tClock = std::chrono::high_resolution_clock>
 struct timerT
 {
-    int64_t startTime = 0;
+    std::chrono::nanoseconds startTime = std::chrono::nanoseconds(0);
     tClock clock;
 };
 
@@ -69,14 +69,13 @@ void timer_start(timerT<T>& timer)
 template<class T>
 void timer_restart(timerT<T>& timer)
 {
-    timer.startTime = std::chrono::duration_cast<std::chrono::nanoseconds>(timer.clock.now().time_since_epoch()).count();
+    timer.startTime = std::chrono::duration_cast<std::chrono::nanoseconds>(timer.clock.now().time_since_epoch());
 }
 
 template<class T>
-uint64_t timer_get_elapsed(const timerT<T>& timer)
+std::chrono::nanoseconds timer_get_elapsed(const timerT<T>& timer)
 {
-    auto now = std::chrono::duration_cast<std::chrono::nanoseconds>(timer.clock.now().time_since_epoch()).count();
-    return now - timer.startTime;
+    return timer.clock.now().time_since_epoch() - timer.startTime;
 }
 
 template<class T>
@@ -86,11 +85,11 @@ uint64_t timer_to_epoch_utc_seconds(const timerT<T>& timer)
     auto utcNow = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch());
     auto diff = utcNow - nowSeconds;
 
-    return (timer.startTime / 1000000000) + diff.count();
+    return (timer.startTime.count() / 1000000000) + diff.count();
 }
 
-double timer_to_seconds(uint64_t value);
-double timer_to_ms(uint64_t value);
+double timer_to_seconds(std::chrono::nanoseconds value);
+double timer_to_ms(std::chrono::nanoseconds value);
 
 template<class T>
 double timer_get_elapsed_seconds(const timerT<T>& timer)

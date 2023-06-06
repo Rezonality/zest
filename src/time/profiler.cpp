@@ -314,7 +314,7 @@ void PushSectionBase(const char* szSection, unsigned int color, const char* szFi
     profilerEntry->szFile = szFile;
     profilerEntry->szSection = szSection;
     profilerEntry->line = line;
-    profilerEntry->startTime = timer_get_elapsed(gTimer);
+    profilerEntry->startTime = timer_get_elapsed(gTimer).count();
     profilerEntry->endTime = std::numeric_limits<int64_t>::max();
     profilerEntry->level = threadData->callStackDepth;
     threadData->callStackDepth++;
@@ -377,7 +377,7 @@ void PopSection()
     assert(profilerEntry->szSection != nullptr);
 
     // store end time
-    profilerEntry->endTime = timer_get_elapsed(gTimer);
+    profilerEntry->endTime = timer_get_elapsed(gTimer).count();
 
     threadData->maxTime = std::max(profilerEntry->endTime, threadData->maxTime);
 }
@@ -415,7 +415,7 @@ void BeginRegion()
     }
 
     auto& region = gRegionData[gCurrentRegion];
-    region.startTime = timer_get_elapsed(gTimer);
+    region.startTime = timer_get_elapsed(gTimer).count();
 }
 
 void EndRegion()
@@ -432,8 +432,8 @@ void EndRegion()
     }
 
     auto& region = gRegionData[gCurrentRegion];
-    region.endTime = timer_get_elapsed(gTimer);
-    region.name = fmt::format("{:.2f}ms", float(timer_to_ms(region.endTime - region.startTime)));
+    region.endTime = timer_get_elapsed(gTimer).count();
+    region.name = fmt::format("{:.2f}ms", float(timer_to_ms(nanoseconds(region.endTime - region.startTime))));
 
     gCurrentRegion++;
 }
@@ -470,11 +470,11 @@ void NewFrame()
         }
     }
 
-    frame.startTime = timer_get_elapsed(gTimer);
+    frame.startTime = timer_get_elapsed(gTimer).count();
     if (gCurrentFrame > 0)
     {
         gFrameData[gCurrentFrame - 1].endTime = frame.startTime;
-        gFrameData[gCurrentFrame - 1].name = fmt::format("{:.2f}ms", float(timer_to_ms(frame.startTime - gFrameData[gCurrentFrame - 1].startTime)));
+        gFrameData[gCurrentFrame - 1].name = fmt::format("{:.2f}ms", float(timer_to_ms(nanoseconds(frame.startTime - gFrameData[gCurrentFrame - 1].startTime))));
     }
     gCurrentFrame++;
 }
@@ -947,7 +947,7 @@ void ShowProfile(bool* opened)
         timePerPixels = 1.0 / pixelsPerTime;
     };
 
-    const auto now = (int64_t)timer_get_elapsed(gTimer);
+    const auto now = (int64_t)timer_get_elapsed(gTimer).count();
     if (!gPaused)
     {
         auto duration = duration_cast<nanoseconds>(milliseconds(50)).count();
@@ -1098,10 +1098,10 @@ void ShowProfile(bool* opened)
                 {
                     auto tip = fmt::format("{}: {:.4f}ms ({:.2f}us)\nRange: {:.4f}ms - {:.4f}ms\n\n{} (Ln {})",
                         entry.szSection,
-                        timer_to_ms(std::min(entry.endTime, threadData.maxTime) - entry.startTime),
+                        timer_to_ms(nanoseconds(std::min(entry.endTime, threadData.maxTime) - entry.startTime)),
                         (std::min(entry.endTime, threadData.maxTime) - entry.startTime) / 1000.0f,
-                        timer_to_ms(entry.startTime),
-                        timer_to_ms(entry.endTime),
+                        timer_to_ms(nanoseconds(entry.startTime)),
+                        timer_to_ms(nanoseconds(entry.endTime)),
                         entry.szFile, entry.line);
                     ImGui::SetTooltip("%s", tip.c_str());
                 }

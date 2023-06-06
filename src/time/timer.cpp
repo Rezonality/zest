@@ -21,9 +21,9 @@ double timer_to_seconds(uint64_t value)
     return double(value / 1000000000.0);
 }
 
-double timer_to_ms(uint64_t value)
+double timer_to_ms(nanoseconds value)
 {
-    return double(value / 1000000.0);
+    return double(value.count() / 1000000.0);
 }
 
 date::sys_time<std::chrono::milliseconds> sys_time_from_iso_8601(const std::string& str)
