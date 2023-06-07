@@ -2,6 +2,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue CONFIG REQUIRED)
 find_path(TINYDIR_INCLUDE_DIR "tinydir.h")
+find_path(CPPCODEC_INCLUDE_DIRS "cppcodec/base32_crockford.hpp")
 
 # Used Packages external to vcpkg
 include(GNUInstallDirs)
@@ -22,6 +23,7 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/src/ui/colors.cpp
     ${ZEST_ROOT}/src/ui/dpi.cpp
     ${ZEST_ROOT}/src/ui/imgui_extras.cpp
+    ${ZEST_ROOT}/src/ui/layout_manager.cpp
 
     ${ZEST_ROOT}/include/zest/algorithm/container_utils.h
     ${ZEST_ROOT}/include/zest/algorithm/ringiterator.h
@@ -32,6 +34,7 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/include/zest/ui/colors.h
     ${ZEST_ROOT}/include/zest/ui/dpi.h
     ${ZEST_ROOT}/include/zest/ui/imgui_extras.h
+    ${ZEST_ROOT}/include/zest/ui/layout_manager.h
     )
 
 # Create the library
@@ -54,10 +57,11 @@ target_include_directories(Zest
     PUBLIC
         $<BUILD_INTERFACE:${ZEST_ROOT}/include>
         $<BUILD_INTERFACE:${TINYDIR_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${CPPCODEC_INCLUDE_DIRS}>
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(Zest 
+target_link_libraries(Zest
 PUBLIC
     imgui::imgui
     glm::glm

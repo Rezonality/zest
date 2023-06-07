@@ -10,7 +10,7 @@ cd %~dp0
 
 cd vcpkg
 echo Installing Libraries
-vcpkg install date tinydir fmt imgui glm concurrentqueue catch2 nlohmann-json tomlplusplus --triplet x64-windows-static-md --recurse
+vcpkg install date tinydir fmt cppcodec imgui glm concurrentqueue catch2 nlohmann-json tomlplusplus --triplet x64-windows-static-md --recurse
 cd %~dp0
 
 echo %Time%

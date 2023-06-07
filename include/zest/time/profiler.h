@@ -78,7 +78,7 @@ void EndRegion();
 void SetRegionLimit(uint64_t maxTimeNs);
 void PushSectionBase(const char*, uint32_t, const char*, int);
 void PopSection();
-void ShowProfile(bool* opened);
+void ShowProfile();
 void HideThread();
 void Finish();
 

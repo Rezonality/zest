@@ -845,7 +845,7 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 }
 
 // Show the profiler window
-void ShowProfile(bool* opened)
+void ShowProfile()
 {
     PROFILE_SCOPE(Profile_UI);
 
