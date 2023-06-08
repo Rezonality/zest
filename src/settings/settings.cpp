@@ -119,15 +119,15 @@ void SettingsManager::DrawTreeNode(const std::shared_ptr<TreeNode>& spNode) cons
     }
 }
 
-void SettingsManager::DrawGUI(const std::string& name) const
+void SettingsManager::DrawGUI(const std::string& name, bool* bOpen) const
 {
     std::vector<Zest::StringId> sectionNames;
 
-    // TODO: Only do this on occasion
-    BuildTree();
-
-    if (ImGui::Begin(name.c_str()))
+    if (ImGui::Begin(name.c_str(), bOpen))
     {
+        // TODO: Only do this on occasion
+        BuildTree();
+
         for (auto& [name, spChild] : m_spRoot->children)
         {
             DrawTreeNode(spChild);

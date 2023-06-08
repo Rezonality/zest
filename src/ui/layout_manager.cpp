@@ -14,6 +14,9 @@
 namespace Zest
 {
 
+void layout_manager_save_layouts_file();
+void layout_manager_save_layout(const std::string& layoutName, const std::string& layoutText);
+
 LayoutManagerData LayoutData;
 
 void layout_manager_load_layouts_file(const std::string& appName, const fnLoadCB& fnLoad, bool forceReset)
@@ -59,51 +62,53 @@ void layout_manager_load_layouts_file(const std::string& appName, const fnLoadCB
             }
         }
 
-
-        /*
         // Read the layouts.toml
         auto settingsData = toml::parse_file(LayoutData.layoutSettingsPath.string());
-        auto root = toml::expect<toml::array>(settingsData, "layout");
-        if (root.is_ok())
+
+        if (toml::array* layouts = settingsData["layout"].as_array())
         {
-            // Read back all the layouts, remember the enable keys
-            auto arr = root.unwrap();
-            for (auto& layout : arr)
+            for (auto& entry : *layouts)
             {
-                LayoutInfo info;
-                std::string base64 = toml_get<std::string>(layout.as_table(), "windows", "");
-
-                // Decode the base64 back to a layout that the client can understand
-                auto vecData = cppcodec::base64_rfc4648::decode(base64);
-                info.windowLayout = std::string((const char*)vecData.data(), vecData.size());
-
-                // Get the name
-                auto name = toml_get<std::string>(layout.as_table(), "name", "Default");
-
-                // Get the enables for this layout
-                auto enables = toml::expect<toml::table>(layout, "enables");
-                if (enables.is_ok())
+                if (entry.is_table())
                 {
-                    auto enableTable = enables.unwrap();
-                    for (auto& state : enableTable)
+                    auto layoutTable = *entry.as_table();
+                    LayoutInfo info;
+
+                    // Enables
+                    auto enablesTable = layoutTable["enables"].as_table();
+                    if (enablesTable)
                     {
-                        info.showFlags[state.first] = state.second.as_boolean();
+                        for (auto& [key, value] : *enablesTable)
+                        {
+                            if (value.is_boolean())
+                            {
+                                info.showFlags[key.str().data()] = value.as_boolean()->get();
+                            }
+                        }
                     }
-                }
+                
+                    std::string base64 = layoutTable["windows"].value_or("");
 
-                if (!name.empty() && !info.windowLayout.empty())
-                {
-                    LayoutData.layouts[name] = info;
+                    // Decode the base64 back to a layout that the client can understand
+                    auto vecData = cppcodec::base64_rfc4648::decode(base64);
+                    info.windowLayout = std::string((const char*)vecData.data(), vecData.size());
 
-                    if (LayoutData.lastLayout.empty() && name == "Default")
+                    std::string name = layoutTable["name"].value_or("");
+
+                    if (!info.windowLayout.empty())
                     {
-                        LayoutData.loadCB(info);
-                        LayoutData.lastLayout = name;
+                        LayoutData.layouts[name] = info;
+
+                        // Load the 'Default' layout by default
+                        if (name.empty())
+                        {
+                            layout_manager_load_layout(name);
+                        }
                     }
                 }
             }
         }
-        */
+
     }
     catch (std::exception& ex)
     {
@@ -111,6 +116,12 @@ void layout_manager_load_layouts_file(const std::string& appName, const fnLoadCB
         LOG(DBG, "Failed to read settings: ");
         LOG(DBG, ex.what());
     }
+}
+
+void layout_manager_save()
+{
+    // Always save the 'current' layout
+    layout_manager_save_layout("", ImGui::SaveIniSettingsToMemory());
 }
 
 void layout_manager_save_layouts_file()
@@ -125,6 +136,7 @@ void layout_manager_save_layouts_file()
         toml::table entry;
         entry.insert("name", layoutName);
 
+        // Encode the binary window information as base 64, so we can reload it for ImGui
         auto enc = cppcodec::base64_rfc4648::encode(layout.windowLayout);
         entry.insert("windows", enc);
       
@@ -138,9 +150,6 @@ void layout_manager_save_layouts_file()
         entries.push_back(entry);
     }
 
-    // Store the last layout, in case one hasn't been loaded yet
-    values.insert("last_layout", LayoutData.lastLayout); 
-
     // [layout.entries]
     values.insert("layout", entries);
 
@@ -153,11 +162,6 @@ void layout_manager_save_layouts_file()
 
 void layout_manager_save_layout(const std::string& layoutName, const std::string& layoutString)
 {
-    if (layoutName.empty())
-    {
-        return;
-    }
-
     // Copy existing show state
     for (auto& [key, value] : LayoutData.mapWindowState)
     {
@@ -179,9 +183,6 @@ void layout_manager_load_layout(const std::string& layoutName)
         return;
     }
 
-    // Remember the last thing we loaded
-    LayoutData.lastLayout = layoutName;
-
     // Set the window show states for things we found; everything else stays the same
     for (auto& [key, value] : itr->second.showFlags)
     {
@@ -191,7 +192,7 @@ void layout_manager_load_layout(const std::string& layoutName)
             *itrFound->second.pVisible = value;
         }
     }
-    LayoutData.loadCB(itr->second);
+    LayoutData.loadCB(layoutName, itr->second);
 }
 
 void layout_manager_register_window(const std::string& key, const std::string& name, bool* showState)
@@ -213,9 +214,12 @@ void layout_manager_do_menu()
         {
             for (auto& [name, layout] : LayoutData.layouts)
             {
-                if (ImGui::MenuItem(name.c_str()))
+                if (!name.empty())
                 {
-                    LayoutData.pendingLayoutLoad = name;
+                    if (ImGui::MenuItem(name.c_str()))
+                    {
+                        LayoutData.pendingLayoutLoad = name;
+                    }
                 }
             }
 
@@ -241,6 +245,38 @@ void layout_manager_do_menu()
         }
 
         ImGui::EndMenu();
+    }
+}
+
+void layout_manager_do_menu_popups()
+{
+    if (LayoutData.popupLayoutSaveRequest == true)
+    {
+        ImGui::OpenPopup("LayoutName");
+        LayoutData.popupLayoutSaveRequest = false;
+    }
+
+    if (ImGui::BeginPopupModal("LayoutName", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        char chID[64];
+        chID[0] = 0;
+        if (ImGui::InputText("Name", chID, 64, ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            layout_manager_save_layout(chID, ImGui::SaveIniSettingsToMemory());
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+// We call this outside of ImGui NewFrame to load any pending layouts
+void layout_manager_update()
+{
+    if (!LayoutData.pendingLayoutLoad.empty())
+    {
+        layout_manager_load_layout(LayoutData.pendingLayoutLoad);
+        LayoutData.pendingLayoutLoad.clear();
     }
 }
 

@@ -239,7 +239,7 @@ public:
     SettingsManager();
     void AddClient(SettingsClient client);
     void DrawTreeNode(const std::shared_ptr<TreeNode>& spNode) const;
-    void DrawGUI(const std::string& name) const;
+    void DrawGUI(const std::string& name, bool* pOpen) const;
     bool Save(const std::filesystem::path& path) const;
     bool Load(const std::filesystem::path& path);
     void Set(const StringId& section, const StringId& id, const SettingValue& value)

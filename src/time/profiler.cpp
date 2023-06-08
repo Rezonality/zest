@@ -882,6 +882,9 @@ void ShowProfile()
     ImGui::PushItemWidth(100 * dpi.scaleFactorXY.x);
     ImGui::SliderFloat("Scale", &scale, .5f, 2.0f, "%.2f");
 
+    ImGui::SameLine();
+    ImGui::Text(fmt::format("  UI FPS {:.1f}", ImGui::GetIO().Framerate).c_str());
+
     // Ignore the first frame, which is likely a long delay due to
     // the time that expires after this profiler is created and the first
     // frame is drawn
@@ -1096,13 +1099,7 @@ void ShowProfile()
 
                 if (ImGui::IsMouseHoveringRect(rectMin, rectMax))
                 {
-                    auto tip = fmt::format("{}: {:.4f}ms ({:.2f}us)\nRange: {:.4f}ms - {:.4f}ms\n\n{} (Ln {})",
-                        entry.szSection,
-                        timer_to_ms(nanoseconds(std::min(entry.endTime, threadData.maxTime) - entry.startTime)),
-                        (std::min(entry.endTime, threadData.maxTime) - entry.startTime) / 1000.0f,
-                        timer_to_ms(nanoseconds(entry.startTime)),
-                        timer_to_ms(nanoseconds(entry.endTime)),
-                        entry.szFile, entry.line);
+                    auto tip = fmt::format("{}: {:.4f}ms ({:.2f}us)\nRange: {:.4f}ms - {:.4f}ms\n\n{} (Ln {})", entry.szSection, timer_to_ms(nanoseconds(std::min(entry.endTime, threadData.maxTime) - entry.startTime)), (std::min(entry.endTime, threadData.maxTime) - entry.startTime) / 1000.0f, timer_to_ms(nanoseconds(entry.startTime)), timer_to_ms(nanoseconds(entry.endTime)), entry.szFile, entry.line);
                     ImGui::SetTooltip("%s", tip.c_str());
                 }
 
