@@ -1,6 +1,7 @@
 find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 find_path(TINYDIR_INCLUDE_DIR "tinydir.h")
 find_path(CPPCODEC_INCLUDE_DIRS "cppcodec/base32_crockford.hpp")
 
