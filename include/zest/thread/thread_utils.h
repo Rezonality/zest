@@ -3,6 +3,7 @@
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <emmintrin.h>
 #include <future>
 #include <thread>
@@ -12,7 +13,7 @@ namespace Zest
 template <typename R>
 bool is_future_ready(std::future<R> const& f)
 {
-    return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    return f.valid() && (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
 }
 
 template <typename T>
@@ -23,7 +24,7 @@ std::future<T> make_ready_future(T val)
     return promise.get_future();
 }
 
-struct audio_spin_mutex
+struct spin_mutex
 {
     void lock() noexcept
     {
@@ -82,6 +83,38 @@ struct audio_spin_mutex
 
 private:
     std::atomic_flag flag = ATOMIC_FLAG_INIT;
+};
+
+inline bool spin_mutex_try(spin_mutex& mutex, const std::function<void()>& fnCB)
+{
+    if (mutex.try_lock())
+    {
+        fnCB();
+        mutex.unlock();
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+class spin_mutex_lock
+{
+public:
+    spin_mutex_lock(spin_mutex & mutex)
+        : m(mutex)
+    {
+        m.lock();
+    }
+
+    ~spin_mutex_lock()
+    {
+        m.unlock();
+    }
+
+private:
+    spin_mutex& m;
 };
 
 } // namespace Zest

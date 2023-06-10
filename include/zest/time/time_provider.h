@@ -57,7 +57,7 @@ public:
 private:
     TimePoint m_startTime;
     std::unordered_set<ITimeConsumer*> m_consumers;
-    audio_spin_mutex m_spin_mutex;
+    spin_mutex m_spin_mutex;
 
     std::atomic_bool m_quitTimer = false;
     std::thread m_tickThread;
