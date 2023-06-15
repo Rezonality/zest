@@ -1,14 +1,12 @@
 #include <chrono>
 #include <sstream>
 #include <string>
-#include <date/date.h>
 
 #include "zest/logger/logger.h"
 #include "zest/time/timer.h"
 #include <zest/time/profiler.h>
 
 using namespace std::chrono;
-using namespace date;
 using namespace Zest;
 
 namespace Zest
@@ -26,17 +24,17 @@ double timer_to_ms(nanoseconds value)
     return double(value.count() / 1000000.0);
 }
 
-date::sys_time<std::chrono::milliseconds> sys_time_from_iso_8601(const std::string& str)
+std::chrono::sys_time<std::chrono::milliseconds> sys_time_from_iso_8601(const std::string& str)
 {
     std::istringstream in{ str };
-    date::sys_time<std::chrono::milliseconds> tp;
-    in >> date::parse("%FT%TZ", tp);
+    std::chrono::sys_time<std::chrono::milliseconds> tp;
+    in >> std::chrono::parse("%FT%TZ", tp);
     if (in.fail())
     {
         in.clear();
         in.exceptions(std::ios::failbit);
         in.str(str);
-        in >> date::parse("%FT%T%Ez", tp);
+        in >> std::chrono::parse("%FT%T%Ez", tp);
     }
     return tp;
 }
@@ -49,18 +47,19 @@ DateTime datetime_from_iso_8601(const std::string& str)
 /*
 std::string datetime_to_iso_8601_string(DateTime dt)
 {
-    return date::format("%y_%m_%d_%H_%M_%S", dt);
+    return std::chrono::format("%y_%m_%d_%H_%M_%S", dt);
 }
 */
 
 std::string datetime_to_iso_8601(DateTime tp)
 {
-    return date::format("%FT%TZ", date::floor<seconds>(tp));
+    //return std::chrono::format("%FT%TZ", std::chrono::floor<seconds>(tp));
+    return "";
 }
 
 DateTime datetime_now()
 {
-    return DateTime(date::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+    return DateTime(std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
 }
 
 DateTime datetime_from_seconds(uint64_t t)
@@ -81,8 +80,9 @@ DateTime datetime_from_timer_start(timer& timer)
 // Convert DateTime to string 
 std::string datetime_to_string(DateTime d, DateTimeFormat format)
 {
-    auto dp = date::floor<date::days>(d);
-    auto ymd = date::year_month_day{ dp };
+    /*
+    auto dp = std::chrono::floor<std::chrono::days>(d);
+    auto ymd = std::chrono::year_month_day{ dp };
     auto tm = make_time(d - dp);
     std::ostringstream str;
     switch (format)
@@ -116,6 +116,8 @@ std::string datetime_to_string(DateTime d, DateTimeFormat format)
         str << d.time_since_epoch().count();
         return str.str();
     }
+    */
+    return "";
 }
 
 } // namespace Zest
