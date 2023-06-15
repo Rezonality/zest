@@ -1,7 +1,6 @@
 #pragma once
 
 #include <chrono>
-#include <date/date.h>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -19,18 +18,18 @@ using TimeSpan = std::chrono::seconds;
 using DateTime = std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>;
 using DaysAsSeconds = std::chrono::duration<int, std::ratio<24 * 3600>>;
 
-const auto HalfDaySeconds = std::chrono::seconds(date::days(1)).count() / 2;
-const auto FullDaySeconds = std::chrono::seconds(date::days(1)).count();
-const int64_t YearDays = date::floor<date::days>(date::years(1)).count();
-const int64_t MonthDays = date::floor<date::days>(date::months(1)).count();
-const int64_t WeekDays = date::floor<date::days>(date::weeks(1)).count();
+const auto HalfDaySeconds = std::chrono::seconds(std::chrono::days(1)).count() / 2;
+const auto FullDaySeconds = std::chrono::seconds(std::chrono::days(1)).count();
+const int64_t YearDays = std::chrono::floor<std::chrono::days>(std::chrono::years(1)).count();
+const int64_t MonthDays = std::chrono::floor<std::chrono::days>(std::chrono::months(1)).count();
+const int64_t WeekDays = std::chrono::floor<std::chrono::days>(std::chrono::weeks(1)).count();
 const double DaysToYears = 1 / double(YearDays);
 
 DateTime datetime_now();
 DateTime datetime_from_seconds(uint64_t t);
 DateTime datetime_from_seconds(std::chrono::seconds s);
 
-date::sys_time<std::chrono::milliseconds> sys_time_from_iso_8601(const std::string& str);
+std::chrono::sys_time<std::chrono::milliseconds> sys_time_from_iso_8601(const std::string& str);
 DateTime datetime_from_iso_8601(const std::string& str);
 std::string datetime_to_iso_8601(DateTime dt);
 

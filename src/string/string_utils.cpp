@@ -8,8 +8,8 @@
 #include <sstream>
 #include <string>
 
-#include "zest/string/string_utils.h"
-#include "zest/string/murmur_hash.h"
+#include <zest/string/string_utils.h>
+#include <zest/string/murmur_hash.h>
 
 using namespace std;
 
