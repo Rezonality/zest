@@ -1,4 +1,6 @@
+if (${VCPKG_IMGUI})
 find_package(imgui CONFIG REQUIRED)
+endif()
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
