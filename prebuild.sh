@@ -15,7 +15,7 @@ fi
 
 if [ ! -d "vcpkg/imgui" ]; then
   cd vcpkg
-  ./vcpkg install cppcodec date fmt foonathan-memory glm concurrentqueue tinydir catch2 nlohmann-json tomlplusplus --triplet ${triplet[0]} --recurse
+  ./vcpkg install cppcodec freetype sdl2 fmt foonathan-memory glm concurrentqueue tinydir catch2 nlohmann-json tomlplusplus --triplet ${triplet[0]} --recurse
   if [ "$(uname)" != "Darwin" ]; then
   ./vcpkg install glib --triplet ${triplet[0]} --recurse
   fi

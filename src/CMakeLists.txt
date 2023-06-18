@@ -1,6 +1,8 @@
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue CONFIG REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+find_package(Freetype REQUIRED)
 find_path(TINYDIR_INCLUDE_DIR "tinydir.h")
 find_path(CPPCODEC_INCLUDE_DIRS "cppcodec/base32_crockford.hpp")
 
@@ -70,6 +72,7 @@ target_include_directories(Zest
     PRIVATE
         $<BUILD_INTERFACE:${ZEST_ROOT}/libs>
         $<BUILD_INTERFACE:${ZEST_ROOT}/include>
+        $<BUILD_INTERFACE:${ZEST_ROOT}/include/zest/imgui>
         ${ZEST_ROOT}/include
         ${CMAKE_CURRENT_BINARY_DIR}/include
     PUBLIC
@@ -84,6 +87,9 @@ PUBLIC
     glm::glm
     unofficial::concurrentqueue::concurrentqueue
     fmt::fmt
+    Freetype::Freetype
+    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
     )
 
 # Set locations for components
