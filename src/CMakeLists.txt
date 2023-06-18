@@ -3,6 +3,7 @@ find_package(unofficial-concurrentqueue CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(Vulkan REQUIRED)
 find_path(TINYDIR_INCLUDE_DIR "tinydir.h")
 find_path(CPPCODEC_INCLUDE_DIRS "cppcodec/base32_crockford.hpp")
 
@@ -46,8 +47,10 @@ set(IMGUI_SOURCE
     ${ZEST_ROOT}/src/imgui/imgui_tables.cpp
     ${ZEST_ROOT}/src/imgui/imgui_widgets.cpp
     ${ZEST_ROOT}/src/imgui/imgui_freetype.cpp
-    ${ZEST_ROOT}/src/imgui/imgui_impl_sdl.cpp
-    ${ZEST_ROOT}/include/zest/imgui/imgui_impl_sdl.h
+    ${ZEST_ROOT}/src/imgui/imgui_impl_sdl2.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_impl_vulkan.cpp
+    ${ZEST_ROOT}/include/zest/imgui/imgui_impl_sdl2.h
+    ${ZEST_ROOT}/include/zest/imgui/imgui_impl_vulkan.h
     ${ZEST_ROOT}/include/zest/imgui/imstb_rectpack.h
     ${ZEST_ROOT}/include/zest/imgui/imstb_textedit.h
     ${ZEST_ROOT}/include/zest/imgui/imstb_truetype.h
@@ -85,8 +88,16 @@ PUBLIC
     unofficial::concurrentqueue::concurrentqueue
     fmt::fmt
     Freetype::Freetype
+    Vulkan::Vulkan
     $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
     $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    )
+
+# Set locations for components
+set_target_properties(Zest PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
 source_group ("Zest\\Timing" .*time.*)
@@ -100,6 +111,7 @@ source_group ("Zest\\Callback" .*callback.*)
 source_group ("Zest\\Settings" .*settings.*)
 source_group ("Zest\\GL" .*gl.*)
 source_group ("Zest\\Thread" .*thread.*)
+source_group ("Zest\\ImGui" FILES ${IMGUI_SOURCE})
 source_group ("Zest\\UI" .*ui.*)
 source_group ("Zest\\VM" .*vm.*)
 source_group ("Zest\\Device" .*device.*)
