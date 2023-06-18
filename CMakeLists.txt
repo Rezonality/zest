@@ -15,8 +15,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_DEBUG_POSTFIX "-debug")
 set(CMAKE_RELWITHDEBINFO_POSTFIX "-reldbg")
 
-option (VCPKG_IMGUI ON)
-
 if (WIN32)
     set(VCPKG_TARGET_TRIPLET x64-windows-static-md)
 endif()

@@ -1,6 +1,3 @@
-if (${VCPKG_IMGUI})
-find_package(imgui CONFIG REQUIRED)
-endif()
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
@@ -40,9 +37,27 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/include/zest/ui/layout_manager.h
     )
 
+set(IMGUI_SOURCE
+    ${ZEST_ROOT}/src/imgui/imgui.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_demo.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_draw.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_tables.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_widgets.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_freetype.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_impl_sdl.cpp
+    ${ZEST_ROOT}/include/zest/imgui/imgui_impl_sdl.h
+    ${ZEST_ROOT}/include/zest/imgui/imstb_rectpack.h
+    ${ZEST_ROOT}/include/zest/imgui/imstb_textedit.h
+    ${ZEST_ROOT}/include/zest/imgui/imstb_truetype.h
+    ${ZEST_ROOT}/include/zest/imgui/imgui_internal.h
+    ${ZEST_ROOT}/include/zest/imgui/imconfig.h
+    ${ZEST_ROOT}/include/zest/imgui/imgui.h
+)
+
 # Create the library
 add_library(Zest STATIC
     ${UTILS_SOURCES}
+    ${IMGUI_SOURCE}
     )
 
 target_compile_definitions(Zest
@@ -66,7 +81,6 @@ target_include_directories(Zest
 
 target_link_libraries(Zest
 PUBLIC
-    imgui::imgui
     glm::glm
     unofficial::concurrentqueue::concurrentqueue
     fmt::fmt
