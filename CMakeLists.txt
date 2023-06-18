@@ -45,33 +45,4 @@ if (ZEST_BUILD_TESTS)
 include(tests/CMakeLists.txt)
 endif()
 
-# Make the CMake bits that ensure find_package does the right thing
-install(EXPORT zest-targets
-    FILE zest-targets.cmake
-    NAMESPACE Zest::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zest
-    )
-
-include(CMakePackageConfigHelpers)
-
-configure_package_config_file(
-    ${ZEST_ROOT}/cmake/zest-config.cmake.in
-    ${CMAKE_BINARY_DIR}/cmake/zest-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zest
-    PATH_VARS ZEST_INCLUDE_DIR
-    PATH_VARS ZEST_LIB_DIR
-    )
-
-write_basic_package_version_file(
-    ${CMAKE_BINARY_DIR}/cmake/zest-config-version.cmake
-    VERSION 1.0
-    COMPATIBILITY AnyNewerVersion
-    )
-
-install(
-    FILES
-    ${CMAKE_BINARY_DIR}/cmake/zest-config.cmake
-    ${CMAKE_BINARY_DIR}/cmake/zest-config-version.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zest
-    )
 

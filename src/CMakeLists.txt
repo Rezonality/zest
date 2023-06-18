@@ -70,16 +70,13 @@ add_library(Zest::Zest ALIAS Zest)
 
 target_include_directories(Zest
     PRIVATE
-        $<BUILD_INTERFACE:${ZEST_ROOT}/libs>
-        $<BUILD_INTERFACE:${ZEST_ROOT}/include>
-        $<BUILD_INTERFACE:${ZEST_ROOT}/include/zest/imgui>
-        ${ZEST_ROOT}/include
+        ${ZEST_ROOT}/libs
+        ${ZEST_ROOT}/include/zest/imgui
         ${CMAKE_CURRENT_BINARY_DIR}/include
+        ${TINYDIR_INCLUDE_DIR}
+        ${CPPCODEC_INCLUDE_DIRS}
     PUBLIC
-        $<BUILD_INTERFACE:${ZEST_ROOT}/include>
-        $<BUILD_INTERFACE:${TINYDIR_INCLUDE_DIR}>
-        $<BUILD_INTERFACE:${CPPCODEC_INCLUDE_DIRS}>
-        $<INSTALL_INTERFACE:include>
+        ${ZEST_ROOT}/include
 )
 
 target_link_libraries(Zest
@@ -90,32 +87,6 @@ PUBLIC
     Freetype::Freetype
     $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
     $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
-    )
-
-# Set locations for components
-set_target_properties(Zest PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-    )
-
-# Install the binary
-install(TARGETS Zest
-    EXPORT zest-targets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    INCLUDES DESTINATION ${LIBLEGACY_INCLUDE_DIRS}
-    )
-
-# CMake
-install(FILES ${ZEST_ROOT}/cmake/utils.cmake
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cmake
-    )
-
-# Install the include files
-install(DIRECTORY ${ZEST_ROOT}/include/zest
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
 source_group ("Zest\\Timing" .*time.*)
