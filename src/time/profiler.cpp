@@ -883,7 +883,8 @@ void ShowProfile()
     ImGui::SliderFloat("Scale", &scale, .5f, 2.0f, "%.2f");
 
     ImGui::SameLine();
-    ImGui::Text(fmt::format("  UI FPS {:.1f}", ImGui::GetIO().Framerate).c_str());
+
+    ImGui::TextUnformatted(fmt::format("  UI FPS {:.1f}", ImGui::GetIO().Framerate).c_str());
 
     // Ignore the first frame, which is likely a long delay due to
     // the time that expires after this profiler is created and the first

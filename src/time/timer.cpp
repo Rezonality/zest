@@ -24,6 +24,7 @@ double timer_to_ms(nanoseconds value)
     return double(value.count() / 1000000.0);
 }
 
+/*
 std::chrono::sys_time<std::chrono::milliseconds> sys_time_from_iso_8601(const std::string& str)
 {
     std::istringstream in{ str };
@@ -44,7 +45,7 @@ DateTime datetime_from_iso_8601(const std::string& str)
     auto t = sys_time_from_iso_8601(str);
     return DateTime(duration_cast<seconds>(t.time_since_epoch()));
 }
-/*
+
 std::string datetime_to_iso_8601_string(DateTime dt)
 {
     return std::chrono::format("%y_%m_%d_%H_%M_%S", dt);
@@ -77,7 +78,7 @@ DateTime datetime_from_timer_start(timer& timer)
     return DateTime(seconds(timer_to_epoch_utc_seconds(timer)));
 }
 
-// Convert DateTime to string 
+// Convert DateTime to string
 std::string datetime_to_string(DateTime d, DateTimeFormat format)
 {
     /*
