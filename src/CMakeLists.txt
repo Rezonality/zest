@@ -2,13 +2,9 @@ find_package(glm CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
-find_package(Freetype REQUIRED)
 find_package(Vulkan REQUIRED)
 find_path(TINYDIR_INCLUDE_DIR "tinydir.h")
 find_path(CPPCODEC_INCLUDE_DIRS "cppcodec/base32_crockford.hpp")
-
-# Used Packages external to vcpkg
-include(GNUInstallDirs)
 
 set(UTILS_SOURCES
     ${ZEST_ROOT}/src/CMakeLists.txt
@@ -46,7 +42,6 @@ set(IMGUI_SOURCE
     ${ZEST_ROOT}/src/imgui/imgui_draw.cpp
     ${ZEST_ROOT}/src/imgui/imgui_tables.cpp
     ${ZEST_ROOT}/src/imgui/imgui_widgets.cpp
-    ${ZEST_ROOT}/src/imgui/imgui_freetype.cpp
     ${ZEST_ROOT}/src/imgui/imgui_impl_sdl2.cpp
     ${ZEST_ROOT}/src/imgui/imgui_impl_vulkan.cpp
     ${ZEST_ROOT}/include/zest/imgui/imgui_impl_sdl2.h
@@ -74,12 +69,12 @@ add_library(Zest::Zest ALIAS Zest)
 target_include_directories(Zest
     PRIVATE
         ${ZEST_ROOT}/libs
-        ${ZEST_ROOT}/include/zest/imgui
         ${CMAKE_CURRENT_BINARY_DIR}/include
         ${TINYDIR_INCLUDE_DIR}
         ${CPPCODEC_INCLUDE_DIRS}
     PUBLIC
         ${ZEST_ROOT}/include
+        ${ZEST_ROOT}/include/zest/imgui
 )
 
 target_link_libraries(Zest
@@ -87,17 +82,9 @@ PUBLIC
     glm::glm
     unofficial::concurrentqueue::concurrentqueue
     fmt::fmt
-    Freetype::Freetype
     Vulkan::Vulkan
     $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
     $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
-    )
-
-# Set locations for components
-set_target_properties(Zest PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
 source_group ("Zest\\Timing" .*time.*)
