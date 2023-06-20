@@ -1127,7 +1127,15 @@ void ShowProfile()
             // Walk up the stack to find the outer parent; since it might have started before this frame
             while (threadData.entries[currentEntry].parent != 0xFFFFFFFF)
             {
+                auto last = currentEntry;
                 currentEntry = threadData.entries[currentEntry].parent;
+
+                // WAR for a noticed lockup; needs to be debugged.
+                if (last == currentEntry)
+                {
+                    assert(!"This shouldn't happen");
+                    break;
+                }
             }
 
             // Step back to find entries that began before the frame
