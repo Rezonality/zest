@@ -14,9 +14,9 @@ namespace Zest
 
 timer globalTimer;
 
-double timer_to_seconds(uint64_t value)
+double timer_to_seconds(nanoseconds value)
 {
-    return double(value / 1000000000.0);
+    return double(value.count() / 1000000000.0);
 }
 
 double timer_to_ms(nanoseconds value)

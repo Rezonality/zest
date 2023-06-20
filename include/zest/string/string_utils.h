@@ -162,6 +162,10 @@ inline bool string_equals(const std::string& str, const std::string& str2)
 {
     return str == str2;
 }
+
+bool string_ends_with(std::string_view str, std::string_view suffix);
+bool string_starts_with(std::string_view str, std::string_view prefix);
+
 } // namespace Zest
 
 namespace std

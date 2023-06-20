@@ -99,84 +99,6 @@ fs::path file_get_relative_path(fs::path from, fs::path to)
     return finalPath;
 }
 
-std::vector<fs::path> file_gather_files(const fs::path& root)
-{
-    std::vector<fs::path> ret;
-
-    tinydir_dir dir;
-    if (tinydir_open(&dir, root.string().c_str()) == -1)
-    {
-        LOG(ERR, "Gather Files, Start Path Invalid: " << root.string());
-        return ret;
-    }
-
-    std::set<fs::path> checkedPaths;
-    std::queue<tinydir_dir> dirs;
-    dirs.push(dir);
-    while (!dirs.empty())
-    {
-        tinydir_dir thisDir = dirs.front();
-        dirs.pop();
-
-        while (thisDir.has_next)
-        {
-            tinydir_file file;
-            if (tinydir_readfile(&thisDir, &file) == -1)
-            {
-                LOG(ERR, "Couldn't read: " << thisDir.path);
-                tinydir_next(&thisDir);
-                continue;
-            }
-
-            try
-            {
-                fs::path filePath(file.path);
-
-                // Ignore . and ..
-                // Otherwise we walk forever.  Do this before absolute path!
-                if (filePath.string().find("\\.") != std::string::npos || filePath.string().find("..") != std::string::npos)
-                {
-                    tinydir_next(&thisDir);
-                    continue;
-                }
-
-                // Keep paths nice and absolute/canonical
-                filePath = fs::canonical(filePath);
-                if (checkedPaths.find(filePath) != checkedPaths.end())
-                {
-                    LOG(DBG, "Already checked: " << filePath.string());
-                    tinydir_next(&thisDir);
-                    continue;
-                }
-                checkedPaths.insert(filePath);
-
-                if (fs::is_directory(filePath))
-                {
-                    tinydir_dir subDir;
-                    if (tinydir_open(&subDir, filePath.string().c_str()) != -1)
-                    {
-                        fs::path newPath(subDir.path);
-                        newPath = fs::canonical(newPath);
-                        dirs.push(subDir);
-                    }
-                }
-                else
-                {
-                    ret.push_back(filePath);
-                }
-            }
-            catch (fs::filesystem_error& err)
-            {
-                (void)&err;
-                LOG(ERR, err.what());
-            }
-
-            tinydir_next(&thisDir);
-        }
-    }
-    return ret;
-}
-
 /*
 //https://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string
 std::string makeStr(const std::wstring& str)
@@ -380,6 +302,125 @@ fs::path file_init_settings(const std::string& appName, const fs::path& defaultS
     }
     LOG(DBG, "Settings Path:" << settingsPath);
     return settingsPath;
+}
+
+void file_folder_copy(const fs::path& source, const fs::path& target, bool recursive)
+{
+    assert(fs::is_directory(source));
+
+    if (!fs::is_directory(source) || (fs::exists(target) && !fs::is_directory(target)))
+    {
+        return;
+    }
+
+    try
+    {
+        fs::create_directories(target);
+        auto flags = fs::copy_options::overwrite_existing;
+        if (recursive)
+        {
+            flags |= fs::copy_options::recursive; 
+        }
+        fs::copy(source, target, flags);
+    }
+    catch (std::exception&)
+    {
+        LOG(ERR, "Copy failed!");
+    }
+}
+
+std::vector<fs::path> file_gather_folders(const fs::path& root)
+{
+    std::vector<fs::path> list;
+    for (auto const& dir_entry : fs::directory_iterator{ root }) 
+    {
+        if (fs::is_directory(dir_entry))
+        {
+            list.push_back(dir_entry);
+        }
+    }
+    return list;
+}
+
+std::vector<fs::path> file_gather_files(const fs::path& root, bool recursive)
+{
+    std::vector<fs::path> ret;
+
+    tinydir_dir dir;
+    if (tinydir_open(&dir, root.string().c_str()) == -1)
+    {
+        LOG(ERR, "Gather Files, Start Path Invalid: " << root.string());
+        return ret;
+    }
+
+    std::set<fs::path> checkedPaths;
+    std::queue<tinydir_dir> dirs;
+    dirs.push(dir);
+    while (!dirs.empty())
+    {
+        tinydir_dir thisDir = dirs.front();
+        dirs.pop();
+
+        while (thisDir.has_next)
+        {
+            tinydir_file file;
+            if (tinydir_readfile(&thisDir, &file) == -1)
+            {
+                LOG(ERR, "Couldn't read: " << thisDir.path);
+                tinydir_next(&thisDir);
+                continue;
+            }
+
+            try
+            {
+                fs::path filePath(file.path);
+
+                // Ignore . and ..
+                // Otherwise we walk forever.  Do this before absolute path!
+                if (filePath.string().find("\\.") != std::string::npos || filePath.string().find("..") != std::string::npos)
+                {
+                    tinydir_next(&thisDir);
+                    continue;
+                }
+
+                // Keep paths nice and absolute/canonical
+                filePath = fs::canonical(filePath);
+                if (checkedPaths.find(filePath) != checkedPaths.end())
+                {
+                    LOG(DBG, "Already checked: " << filePath.string());
+                    tinydir_next(&thisDir);
+                    continue;
+                }
+                checkedPaths.insert(filePath);
+
+                if (fs::is_directory(filePath))
+                {
+                    if (recursive)
+                    {
+                        tinydir_dir subDir;
+                        if (tinydir_open(&subDir, filePath.string().c_str()) != -1)
+                        {
+                            fs::path newPath(subDir.path);
+                            newPath = fs::canonical(newPath);
+                            dirs.push(subDir);
+                        }
+                    }
+                }
+                else
+                {
+                    ret.push_back(filePath);
+                }
+            }
+            catch (fs::filesystem_error& err)
+            {
+                (void)&err;
+                LOG(ERR, err.what());
+            }
+
+            tinydir_next(&thisDir);
+        }
+    }
+    return ret;
 }
 
 } // namespace Zest

@@ -45,6 +45,16 @@ string string_url_encode(const string& value)
     return escaped.str();
 }
 
+bool string_ends_with(std::string_view str, std::string_view suffix)
+{
+    return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+}
+
+bool string_starts_with(std::string_view str, std::string_view prefix)
+{
+    return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
+}
+
 std::string string_tolower(const std::string& str)
 {
     std::string copy = str;

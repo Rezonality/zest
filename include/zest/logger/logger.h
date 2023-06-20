@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
+#include <vector>
 
 #ifdef WIN32
 // A reference to the debug API on windows, to help the logger output in VC.  This is better
@@ -39,6 +40,9 @@ struct Logger
 {
     bool headers = false;
     LT level = LT::WARNING;
+    uint32_t globalIndent = 0;
+    std::vector<uint32_t> indentStack;
+    bool lastEmpty = false;
 };
 
 extern Logger logger;
@@ -49,14 +53,21 @@ public:
     Log()
     {
     }
-    Log(LT type)
+    Log(LT type, uint32_t indent = 0)
     {
         msglevel = type;
         if (logger.headers && msglevel >= logger.level)
         {
             operator<<("[" + getLabel(type) + "] ");
         }
-        out << "(T:" << std::this_thread::get_id() << ") ";
+        if (msglevel >= logger.level)
+        {
+            for (uint32_t i = 0; i < indent + logger.globalIndent; i++)
+            {
+                out << " ";
+            }
+            out << "(T:" << std::this_thread::get_id() << ") ";
+        }
     }
     ~Log()
     {
@@ -68,6 +79,7 @@ public:
 #else
             std::cout << out.str();
 #endif
+            logger.lastEmpty = false;
         }
         opened = false;
     }
@@ -111,11 +123,60 @@ private:
     std::ostringstream out;
 };
 
-#ifndef LOG
-#ifdef _DEBUG
-#define LOG(a, b) Zest::Log(Zest::LT::a) << b
+class LogIndenter
+{
+public:
+    LogIndenter(uint32_t i)
+        : indent(i)
+    {
+        logger.globalIndent += indent;
+    }
+    ~LogIndenter()
+    {
+        logger.globalIndent -= indent;
+        if (!logger.lastEmpty)
+        {
+#ifdef WIN32
+            OutputDebugStringA("\n");
 #else
+            std::cout << "\n";
+#endif
+            logger.lastEmpty = true;
+        }
+    }
+
+private:
+    uint32_t indent;
+};
+
+#ifndef LOG
+#define CONCAT_LINE_(x,y) x##y
+#define CONCAT_LINE(x,y) CONCAT_LINE_(x, y)
+#ifdef _DEBUG
+#define LOG_SCOPE(a, b) \
+    Zest::Log(Zest::LT::a) << b;        \
+    Zest::LogIndenter CONCAT_LINE(LogIndenter,__LINE__)(4);
+#define LOG_PUSH_INDENT(a)                 \
+    {                                      \
+        logger.globalIndent += a;        \
+        logger.indentStack.push_back(a); \
+    }
+#define LOG_POP_INDENT()                                          \
+    {                                                             \
+        if (!logger.indentStack.empty())                        \
+        {                                                         \
+            logger.globalIndent -= logger.indentStack.back(); \
+            logger.indentStack.pop_back();                      \
+        }                                                         \
+    }
+#define LOG(a, b) Zest::Log(Zest::LT::a) << b
+#define LOG_INDENT(a, indent, b) Zest::Log(Zest::LT::a, indent) << b
+#else
+#define LOG_PUSH_INDENT(a)
+#define LOG_POP_INDENT()
+#define LOG_SCOPE(a, b)
 #define LOG(a, b)
+#define LOG_INDENT(a, indent, b)
 #endif
 #endif
 
