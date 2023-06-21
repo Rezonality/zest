@@ -902,6 +902,11 @@ void ShowProfile()
     glm::vec2 regionMax(regionMin.x + regionSize.x, regionMin.y + regionSize.y);
     glm::vec2 topLeft = regionMin;
 
+    auto pDrawList = ImGui::GetWindowDrawList();
+
+    // Always background fill the profiler
+    pDrawList->AddRectFilled(ImVec2(regionMin.x, regionMin.y), ImVec2(regionMax.x, regionMax.y), 0xFF111111);
+
     auto selectedTimeRange = ShowCandles(regionMin, regionMax);
 
     // Reset region size
@@ -909,7 +914,6 @@ void ShowProfile()
 
     // Setup
     const glm::vec2 textPadding = glm::vec2(3, 3) * dpi.scaleFactorXY;
-    auto pDrawList = ImGui::GetWindowDrawList();
     const auto pFont = ImGui::GetFont();
     const auto fontSize = ImGui::GetFontSize() * scale;
     const auto smallFontSize = fontSize * .66f;
@@ -920,6 +924,7 @@ void ShowProfile()
     int64_t visibleDuration;
     double pixelsPerTime;
     double timePerPixels;
+
 
     auto setTimeRange = [&](glm::i64vec2 range) {
         assert(range.y >= range.x);
