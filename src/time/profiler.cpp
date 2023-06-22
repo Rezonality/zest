@@ -1128,6 +1128,10 @@ void ShowProfile()
 
             // Get the most recent thread entry for this frame
             auto currentEntry = frameThreadInfo.activeEntry;
+            if (currentEntry == 0)
+            {
+                continue;
+            }
 
             // Walk up the stack to find the outer parent; since it might have started before this frame
             while (threadData.entries[currentEntry].parent != 0xFFFFFFFF)
