@@ -5,11 +5,12 @@
 #include <cstring>
 #include <iomanip>
 #include <locale>
+#include <regex>
 #include <sstream>
 #include <string>
 
-#include <zest/string/string_utils.h>
 #include <zest/string/murmur_hash.h>
+#include <zest/string/string_utils.h>
 
 using namespace std;
 
@@ -47,7 +48,7 @@ string string_url_encode(const string& value)
 
 bool string_ends_with(std::string_view str, std::string_view suffix)
 {
-    return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+    return str.size() >= suffix.size() && 0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
 }
 
 bool string_starts_with(std::string_view str, std::string_view prefix)
@@ -360,6 +361,36 @@ std::vector<int> string_get_integers(const std::string& str)
     auto strVals = string_split(str, "\t\n\r ,");
     std::transform(strVals.begin(), strVals.end(), back_inserter(vals), [](const std::string& str) { return stoi(str); });
     return vals;
+}
+
+std::string string_get_first_line(std::string& text)
+{
+    std::istringstream iss(text);
+    std::string line;
+    std::getline(iss, line);
+    return line;
+}
+
+std::string string_remove_first_line(std::string& text)
+{
+    auto line = string_get_first_line(text);
+    text.erase(0, line.length() + 1); // Remove the first line from the string
+    return line;
+}
+
+int string_extract_integer(const std::string& text)
+{
+    try
+    {
+        std::regex numberRegex("\\d+");
+        std::smatch match;
+        std::regex_search(text, match, numberRegex);
+        return std::stoi(match.str());
+    }
+    catch (std::exception& ex)
+    {
+        return 0;
+    }
 }
 
 } // namespace Zest

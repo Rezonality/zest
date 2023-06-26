@@ -157,6 +157,9 @@ std::pair<uint32_t, uint32_t> string_convert_index_to_line_offset(const std::str
 std::vector<int> string_get_integers(const std::string& str);
 std::vector<std::vector<int>> string_get_integer_grid(const std::string& str, const std::string& delims);
 std::vector<std::vector<std::string>> string_get_string_grid(const std::string& str);
+std::string string_get_first_line(std::string& text);
+std::string string_remove_first_line(std::string& text);
+int string_extract_integer(const std::string& text);
 
 inline bool string_equals(const std::string& str, const std::string& str2)
 {
