@@ -203,7 +203,6 @@ void layout_manager_register_window(const std::string& key, const std::string& n
 
 void layout_manager_do_menu()
 {
-    if (ImGui::BeginMenu("Layout"))
     {
         if (ImGui::MenuItem("Restore Default"))
         {
@@ -230,7 +229,7 @@ void layout_manager_do_menu()
         {
             LayoutData.popupLayoutSaveRequest = true;
         }
-#ifdef __DEBUG
+#ifdef ___DEBUG
         if (ImGui::MenuItem("Save Layout File (DEBUG)"))
         {
             igfd::ImGuiFileDialog::Instance()->OpenDialog("SaveLayoutFileKey", "Choose File", ".ini", (runtree_path() / "settings").string(), "layout.ini");
@@ -243,12 +242,10 @@ void layout_manager_do_menu()
         {
             ImGui::MenuItem(state.name.c_str(), nullptr, state.pVisible);
         }
-
-        ImGui::EndMenu();
     }
 }
 
-void layout_manager_do_menu_popups()
+bool layout_manager_do_menu_popups()
 {
     if (LayoutData.popupLayoutSaveRequest == true)
     {
@@ -267,7 +264,9 @@ void layout_manager_do_menu_popups()
         }
 
         ImGui::EndPopup();
+        return true;
     }
+    return false;
 }
 
 // We call this outside of ImGui NewFrame to load any pending layouts

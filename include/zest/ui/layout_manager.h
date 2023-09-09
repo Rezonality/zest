@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <string>
 #include <zest/file/file.h>
 
@@ -45,7 +46,7 @@ void layout_manager_save();
 
 // Called to display the menu, after the menu is finished drawing to show any popups, and once per frame outside of the ImGui::NewFrame
 void layout_manager_do_menu();
-void layout_manager_do_menu_popups();
+bool layout_manager_do_menu_popups();
 void layout_manager_update();
 
 }; // namespace Zest
