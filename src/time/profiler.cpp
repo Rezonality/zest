@@ -985,7 +985,15 @@ void ShowProfile()
         return gTimeRange.x + double(x / regionSize.x) * visibleDuration;
     };
 
-    regionSize.y -= 2;
+    //regionSize.y -= 2; Why was this here?
+
+    // Seen in testing, region size tiny causes an exception/assert in Invisible Button
+    if (regionSize.y <= 0.0f || regionSize.x <= 0.0f)
+    {
+        ImGui::PopStyleVar(1);
+        return;
+    }
+
     glm::vec2 mouseClick = glm::vec2(0.0f);
     ImGui::InvisibleButton("##FramesSectionsWindowDummy", regionSize);
     if (ImGui::IsItemActive())

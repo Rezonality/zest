@@ -12,6 +12,7 @@
 #include <sstream>
 #include <thread>
 #include <vector>
+#include <cassert>
 
 #ifdef WIN32
 // A reference to the debug API on windows, to help the logger output in VC.  This is better
@@ -41,7 +42,7 @@ struct Logger
 {
     bool headers = false;
     LT level = LT::WARNING;
-    uint32_t globalIndent = 0;
+    int32_t globalIndent = 0;
     std::vector<uint32_t> indentStack;
     bool lastEmpty = false;
 };
@@ -138,6 +139,8 @@ public:
     ~LogIndenter()
     {
         logger.globalIndent -= indent;
+        assert(logger.globalIndent >= 0);
+        logger.globalIndent = std::max(logger.globalIndent, int32_t(0));
         if (!logger.lastEmpty)
         {
 #ifdef WIN32
@@ -150,7 +153,7 @@ public:
     }
 
 private:
-    uint32_t indent;
+    int32_t indent;
 };
 
 #ifndef LOG
