@@ -20,6 +20,7 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/src/time/time_provider.cpp
     ${ZEST_ROOT}/src/time/timer.cpp
     ${ZEST_ROOT}/src/ui/colors.cpp
+    ${ZEST_ROOT}/src/ui/fonts.cpp
     ${ZEST_ROOT}/src/ui/dpi.cpp
     ${ZEST_ROOT}/src/ui/imgui_extras.cpp
     ${ZEST_ROOT}/src/ui/layout_manager.cpp
@@ -34,6 +35,8 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/include/zest/ui/dpi.h
     ${ZEST_ROOT}/include/zest/ui/imgui_extras.h
     ${ZEST_ROOT}/include/zest/ui/layout_manager.h
+    ${ZEST_ROOT}/include/zest/ui/fonts.h
+    ${ZEST_ROOT}/include/zest/ui/fontstash.h
     )
 
 set(IMGUI_SOURCE
