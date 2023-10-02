@@ -2,7 +2,7 @@
 
 #include <map> 
 #include <glm/glm.hpp>
-#include <toml++/toml.h>
+#include <tomlplusplus/toml.hpp>
 
 #include <zest/string/string_utils.h>
 

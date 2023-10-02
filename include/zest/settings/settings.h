@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include <toml++/toml.h>
+#include <tomlplusplus/toml.hpp>
 #include <zest/string/string_utils.h>
 
 namespace Zest

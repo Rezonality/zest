@@ -76,6 +76,7 @@ target_include_directories(Zest
         ${TINYDIR_INCLUDE_DIR}
         ${CPPCODEC_INCLUDE_DIRS}
     PUBLIC
+        ${ZEST_ROOT}/external
         ${ZEST_ROOT}/include
         ${ZEST_ROOT}/include/zest/imgui
 )
