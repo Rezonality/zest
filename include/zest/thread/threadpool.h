@@ -24,37 +24,31 @@ freely, subject to the following restrictions:
 /*
 CM: Note: Modified from the original to support query of the threads available on the machine,
 and fallback to using single threaded if not possible.
-Original here: https://github.com/progschj/ThreadPool
+Original here: https://github.com/progschj/TPool
 */
+
 #pragma once
 
 // containers
-#include <array>
-#include <queue>
 #include <vector>
+#include <queue>
 // threading
-#include <atomic>
-#include <condition_variable>
-#include <future>
-#include <mutex>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+#include <future>
 // utility wrappers
-#include <functional>
 #include <memory>
+#include <functional>
 // exceptions
 #include <stdexcept>
-#include <string>
-
-#include <concurrentqueue/concurrentqueue.h>
-//#include <zest/thread/thread_utils.h>
 
 // std::thread pool for resources recycling
-class TPool
-{
+class TPool {
 public:
     // the constructor just launches some amount of workers
-    TPool(size_t threads_n = std::thread::hardware_concurrency())
-        : stop(false)
+    TPool(size_t threads_n = std::thread::hardware_concurrency()) : stop(false)
     {
         // If not enough threads, the pool will just execute all tasks immediately
         if (threads_n > 1)
@@ -62,24 +56,26 @@ public:
             this->workers.reserve(threads_n);
             for (; threads_n; --threads_n)
                 this->workers.emplace_back(
-                    [this] {
-                        while (true)
-                        {
-                            std::function<void()> task;
+                    [this]
+            {
+                while (true)
+                {
+                    std::function<void()> task;
 
-                            {
-                                std::unique_lock<std::mutex> lock(this->queue_mutex);
-                                this->condition.wait(lock,
-                                    [this] { return this->stop || !this->tasks.empty(); });
-                                if (this->stop && this->tasks.empty())
-                                    return;
-                                task = std::move(this->tasks.front());
-                                this->tasks.pop();
-                            }
+                    {
+                        std::unique_lock<std::mutex> lock(this->queue_mutex);
+                        this->condition.wait(lock,
+                            [this] { return this->stop || !this->tasks.empty(); });
+                        if (this->stop && this->tasks.empty())
+                            return;
+                        task = std::move(this->tasks.front());
+                        this->tasks.pop();
+                    }
 
-                            task();
-                        }
-                    });
+                    task();
+                }
+            }
+            );
         }
     }
     // deleted copy&move ctors&assignments
@@ -88,13 +84,22 @@ public:
     TPool(TPool&&) = delete;
     TPool& operator=(TPool&&) = delete;
     // add new work item to the pool
-    template <class F, class... Args>
-    std::future<typename std::invoke_result_t<F, Args...>> enqueue(F&& f, Args&&... args)
+    template<class F, class... Args>
+    #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+    std::future<typename std::invoke_result<F, Args...>::type> enqueue(F&& f, Args&&... args)
+    #else
+    std::future<typename std::result_of<F(Args...)>::type> enqueue(F&& f, Args&&... args)
+    #endif
     {
-        using packaged_task_t = std::packaged_task<typename std::invoke_result_t<F, Args...>>;
+        #if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+        using packaged_task_t = std::packaged_task<typename std::invoke_result<F, Args...>::type()>;
+        #else
+        using packaged_task_t = std::packaged_task<typename std::result_of<F(Args...)>::type ()>;
+        #endif
 
         std::shared_ptr<packaged_task_t> task(new packaged_task_t(
-            std::bind(std::forward<F>(f), std::forward<Args>(args)...)));
+                std::bind(std::forward<F>(f), std::forward<Args>(args)...)
+            ));
 
         // If there are no works, just run the task in the main thread and return
         if (workers.empty())
@@ -105,31 +110,24 @@ public:
         auto res = task->get_future();
         {
             std::unique_lock<std::mutex> lock(this->queue_mutex);
-            this->tasks.emplace([task]() { (*task)(); });
+            this->tasks.emplace([task](){ (*task)(); });
         }
         this->condition.notify_one();
         return res;
     }
-
-    void StopAll()
-    {
-        this->stop = true;
-        this->condition.notify_all();
-        for (std::thread& worker : this->workers)
-            worker.join();
-    }
-
     // the destructor joins all threads
     virtual ~TPool()
     {
-        StopAll();
+        this->stop = true;
+        this->condition.notify_all();
+        for(std::thread& worker : this->workers)
+            worker.join();
     }
-
 private:
     // need to keep track of threads so we can join them
-    std::vector<std::thread> workers;
+    std::vector< std::thread > workers;
     // the task queue
-    std::queue<std::function<void()>> tasks;
+    std::queue< std::function<void()> > tasks;
 
     // synchronization
     std::mutex queue_mutex;
