@@ -4,9 +4,8 @@
 
 #include <zest/math/imgui_glm.h>
 
-#include <zest/ui/fonts.h>
 #define FONTSTASH_IMPLEMENTATION
-#include <zest/ui/fontstash.h>
+#include <zest/ui/fonts.h>
 
 #include <zest/string/string_utils.h>
 
@@ -210,7 +209,7 @@ void fonts_init(FontContext& ctx, IFontTexture* pFontTexture)
     fontParams.renderDraw = NULL;
     fontParams.renderDelete = NULL;
     fontParams.userPtr = NULL;
-    ctx.fs = fonsCreateInternal(&fontParams);
+    ctx.fs = ::fonsCreateInternal(&fontParams);
 
     // Create font texture
     ctx.fontImages[0] = create_texture(ctx, fontParams.width, fontParams.height, nullptr);

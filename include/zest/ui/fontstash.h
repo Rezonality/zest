@@ -208,8 +208,7 @@ int fons__tt_getGlyphIndex(FONSttFontImpl* font, int codepoint)
     return FT_Get_Char_Index(font->font, codepoint);
 }
 
-int fons__tt_buildGlyphBitmap(FONSttFontImpl* font, int glyph, float size, float scale,
-    int* advance, int* lsb, int* x0, int* y0, int* x1, int* y1)
+int fons__tt_buildGlyphBitmap(FONSttFontImpl* font, int glyph, float size, float scale, int* advance, int* lsb, int* x0, int* y0, int* x1, int* y1)
 {
     FT_Error ftError;
     FT_GlyphSlot ftGlyph;
@@ -235,8 +234,7 @@ int fons__tt_buildGlyphBitmap(FONSttFontImpl* font, int glyph, float size, float
     return 1;
 }
 
-void fons__tt_renderGlyphBitmap(FONSttFontImpl* font, unsigned char* output, int outWidth, int outHeight, int outStride,
-    float scaleX, float scaleY, int glyph)
+void fons__tt_renderGlyphBitmap(FONSttFontImpl* font, unsigned char* output, int outWidth, int outHeight, int outStride, float scaleX, float scaleY, int glyph)
 {
     FT_GlyphSlot ftGlyph = font->font->glyph;
     int ftGlyphOffset = 0;
@@ -323,8 +321,7 @@ int fons__tt_getGlyphIndex(FONSttFontImpl* font, int codepoint)
     return stbtt_FindGlyphIndex(&font->font, codepoint);
 }
 
-int fons__tt_buildGlyphBitmap(FONSttFontImpl* font, int glyph, float size, float scale,
-    int* advance, int* lsb, int* x0, int* y0, int* x1, int* y1)
+int fons__tt_buildGlyphBitmap(FONSttFontImpl* font, int glyph, float size, float scale, int* advance, int* lsb, int* x0, int* y0, int* x1, int* y1)
 {
     FONS_NOTUSED(size);
     stbtt_GetGlyphHMetrics(&font->font, glyph, advance, lsb);
@@ -332,8 +329,7 @@ int fons__tt_buildGlyphBitmap(FONSttFontImpl* font, int glyph, float size, float
     return 1;
 }
 
-void fons__tt_renderGlyphBitmap(FONSttFontImpl* font, unsigned char* output, int outWidth, int outHeight, int outStride,
-    float scaleX, float scaleY, int glyph)
+void fons__tt_renderGlyphBitmap(FONSttFontImpl* font, unsigned char* output, int outWidth, int outHeight, int outStride, float scaleX, float scaleY, int glyph)
 {
     stbtt_MakeGlyphBitmap(&font->font, output, outWidth, outHeight, outStride, scaleX, scaleY, glyph);
 }
@@ -1483,8 +1479,7 @@ static void fons__blur(FONScontext* stash, unsigned char* dst, int w, int h, int
     //	fons__blurcols(dst, w, h, dstStride, alpha);
 }
 
-static FONSglyph* fons__getGlyph(FONScontext* stash, FONSfont* font, unsigned int codepoint,
-    short isize, short iblur, int bitmapOption)
+static FONSglyph* fons__getGlyph(FONScontext* stash, FONSfont* font, unsigned int codepoint, short isize, short iblur, int bitmapOption)
 {
     int i, g, advance, lsb, x0, y0, x1, y1, gw, gh, gx, gy, x, y;
     float scale;
@@ -1638,9 +1633,7 @@ static FONSglyph* fons__getGlyph(FONScontext* stash, FONSfont* font, unsigned in
     return glyph;
 }
 
-static void fons__getQuad(FONScontext* stash, FONSfont* font,
-    int prevGlyphIndex, FONSglyph* glyph,
-    float scale, float spacing, float* x, float* y, FONSquad* q)
+static void fons__getQuad(FONScontext* stash, FONSfont* font, int prevGlyphIndex, FONSglyph* glyph, float scale, float spacing, float* x, float* y, FONSquad* q)
 {
     float rx, ry, xoff, yoff, x0, y0, x1, y1;
 
@@ -1770,9 +1763,7 @@ static float fons__getVertAlign(FONScontext* stash, FONSfont* font, int align, s
     return 0.0;
 }
 
-float fonsDrawText(FONScontext* stash,
-    float x, float y,
-    const char* str, const char* end)
+float fonsDrawText(FONScontext* stash, float x, float y, const char* str, const char* end)
 {
     FONSstate* state = fons__getState(stash);
     unsigned int codepoint;
@@ -1844,8 +1835,7 @@ float fonsDrawText(FONScontext* stash,
     return x;
 }
 
-int fonsTextIterInit(FONScontext* stash, FONStextIter* iter,
-    float x, float y, const char* str, const char* end, int bitmapOption)
+int fonsTextIterInit(FONScontext* stash, FONStextIter* iter, float x, float y, const char* str, const char* end, int bitmapOption)
 {
     FONSstate* state = fons__getState(stash);
     float width;
@@ -1976,10 +1966,7 @@ void fonsDrawDebug(FONScontext* stash, float x, float y)
     fons__flush(stash);
 }
 
-float fonsTextBounds(FONScontext* stash,
-    float x, float y,
-    const char* str, const char* end,
-    float* bounds)
+float fonsTextBounds(FONScontext* stash, float x, float y, const char* str, const char* end, float* bounds)
 {
     FONSstate* state = fons__getState(stash);
     unsigned int codepoint;
@@ -2073,8 +2060,7 @@ float fonsTextBounds(FONScontext* stash,
     return advance;
 }
 
-void fonsVertMetrics(FONScontext* stash,
-    float* ascender, float* descender, float* lineh)
+void fonsVertMetrics(FONScontext* stash, float* ascender, float* descender, float* lineh)
 {
     FONSfont* font;
     FONSstate* state = fons__getState(stash);

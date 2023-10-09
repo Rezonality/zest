@@ -24,6 +24,7 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/src/ui/dpi.cpp
     ${ZEST_ROOT}/src/ui/imgui_extras.cpp
     ${ZEST_ROOT}/src/ui/layout_manager.cpp
+    ${ZEST_ROOT}/src/ui/nanovg.cpp
 
     ${ZEST_ROOT}/include/zest/algorithm/container_utils.h
     ${ZEST_ROOT}/include/zest/algorithm/ringiterator.h
@@ -37,6 +38,7 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/include/zest/ui/layout_manager.h
     ${ZEST_ROOT}/include/zest/ui/fonts.h
     ${ZEST_ROOT}/include/zest/ui/fontstash.h
+    ${ZEST_ROOT}/include/zest/ui/nanovg.h
     )
 
 set(IMGUI_SOURCE
