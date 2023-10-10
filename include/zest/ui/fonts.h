@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <zest/ui/fontstash.h>
+#include <zest/ui/nanovg.h>
 #include <vector>
 
 namespace Zest {
@@ -9,6 +10,7 @@ namespace Zest {
 #define NVG_MAX_FONTIMAGE_SIZE 2048
 #define NVG_MAX_FONTIMAGES 4
 
+    /*
 enum NVGalign
 {
     // Horizontal align
@@ -20,7 +22,7 @@ enum NVGalign
     NVG_ALIGN_MIDDLE = 1 << 4, // Align text vertically to middle.
     NVG_ALIGN_BOTTOM = 1 << 5, // Align text vertically to bottom.
     NVG_ALIGN_BASELINE = 1 << 6, // Default, align text vertically to baseline.
-};
+};*/
 
 // Need your engine to implement these; simple texture management 
 struct IFontTexture
