@@ -3,6 +3,7 @@ find_package(unofficial-concurrentqueue CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
+find_package(Stb REQUIRED)
 find_path(TINYDIR_INCLUDE_DIR "tinydir.h")
 find_path(CPPCODEC_INCLUDE_DIRS "cppcodec/base32_crockford.hpp")
 
