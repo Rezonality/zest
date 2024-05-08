@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <zest/math/math_utils.h>
 
