@@ -290,6 +290,10 @@ public:
     }
 
     const StringId& GetCurrentTheme() const;
+    SettingMap& GetSection(const StringId& section) const
+    {
+        return m_sections[section];
+    }
 
     void BuildTree() const;
 
