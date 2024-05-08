@@ -1,5 +1,6 @@
 #include <fmt/format.h>
 #include <zest/file/toml_utils.h>
+#include <zest/logger/logger.h>
 
 #pragma warning(disable : 4005)
 #include <imgui.h>
@@ -136,7 +137,7 @@ void SettingsManager::DrawGUI(const std::string& name, bool* bOpen) const
     ImGui::End();
 }
 
-bool SettingsManager::Save(const std::filesystem::path& path) const
+bool SettingsManager::Save(const std::filesystem::path& filePath) const
 {
     toml::table tbl;
     for (auto& client : m_clients)
@@ -151,12 +152,14 @@ bool SettingsManager::Save(const std::filesystem::path& path) const
         toml::table* pParent = &tbl;
         for (auto& sub : path)
         {
+            LOG(DBG, sub.c_str());
             auto itr = pParent->insert_or_assign(sub, toml::table{});
             pParent = itr.first->second.as_table();
         }
 
         for (const auto& [value_name, value] : values)
         {
+            LOG(DBG, "Name: " << value_name.ToString() << ", Val:" << value.f4.x);
             switch (value.type)
             {
                 case SettingType::Float:
@@ -195,7 +198,7 @@ bool SettingsManager::Save(const std::filesystem::path& path) const
         }
     }
 
-    std::ofstream fs(path, std::ios_base::trunc);
+    std::ofstream fs(filePath, std::ios_base::trunc);
     fs << tbl;
     return true;
 }
