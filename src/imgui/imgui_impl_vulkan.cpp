@@ -622,7 +622,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture(VkCommandBuffer command_buffer)
 
     // Create the Image:
     {
-        VkImageCreateInfo info = {};
+        VkImageCreateInfo info = {0};
         info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         info.imageType = VK_IMAGE_TYPE_2D;
         info.format = VK_FORMAT_R8G8B8A8_UNORM;
@@ -636,6 +636,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture(VkCommandBuffer command_buffer)
         info.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        info.pNext = nullptr;
         err = vkCreateImage(v->Device, &info, v->Allocator, &bd->FontImage);
         check_vk_result(err);
         VkMemoryRequirements req;
