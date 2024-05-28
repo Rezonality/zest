@@ -1279,13 +1279,19 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device, V
     for (uint32_t i = 0; i < wd->ImageCount; i++)
     {
         ImGui_ImplVulkanH_DestroyFrame(device, &wd->Frames[i], allocator);
+    }
+    
+    for (uint32_t i = 0; i < wd->SemaphoreCount; i++)
+    {
         ImGui_ImplVulkanH_DestroyFrameSemaphores(device, &wd->FrameSemaphores[i], allocator);
     }
+
     IM_FREE(wd->Frames);
     IM_FREE(wd->FrameSemaphores);
     wd->Frames = nullptr;
     wd->FrameSemaphores = nullptr;
     wd->ImageCount = 0;
+    wd->SemaphoreCount = 0;
     if (wd->RenderPass)
         vkDestroyRenderPass(device, wd->RenderPass, allocator);
     if (wd->Pipeline)
@@ -1340,8 +1346,9 @@ void ImGui_ImplVulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device, V
         check_vk_result(err);
 
         IM_ASSERT(wd->Frames == nullptr);
+        wd->SemaphoreCount = wd->ImageCount + 1;
         wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
-        wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->ImageCount);
+        wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->SemaphoreCount);
         memset(wd->Frames, 0, sizeof(wd->Frames[0]) * wd->ImageCount);
         memset(wd->FrameSemaphores, 0, sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
         for (uint32_t i = 0; i < wd->ImageCount; i++)
@@ -1451,8 +1458,13 @@ void ImGui_ImplVulkanH_DestroyWindow(VkInstance instance, VkDevice device, ImGui
     for (uint32_t i = 0; i < wd->ImageCount; i++)
     {
         ImGui_ImplVulkanH_DestroyFrame(device, &wd->Frames[i], allocator);
+    }
+        
+    for (uint32_t i = 0; i < wd->SemaphoreCount; i++)
+    {
         ImGui_ImplVulkanH_DestroyFrameSemaphores(device, &wd->FrameSemaphores[i], allocator);
     }
+
     IM_FREE(wd->Frames);
     IM_FREE(wd->FrameSemaphores);
     wd->Frames = nullptr;
@@ -1683,7 +1695,7 @@ static void ImGui_ImplVulkan_SwapBuffers(ImGuiViewport* viewport, void*)
         check_vk_result(err);
 
     wd->FrameIndex = (wd->FrameIndex + 1) % wd->ImageCount;         // This is for the next vkWaitForFences()
-    wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount; // Now we can use the next set of semaphores
+    wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->SemaphoreCount; // Now we can use the next set of semaphores
 }
 
 void ImGui_ImplVulkan_InitPlatformInterface()
