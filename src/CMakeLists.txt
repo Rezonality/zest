@@ -1,6 +1,6 @@
 find_package(glm CONFIG REQUIRED)
 find_package(unofficial-concurrentqueue CONFIG REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(Stb REQUIRED)
@@ -48,9 +48,9 @@ set(IMGUI_SOURCE
     ${ZEST_ROOT}/src/imgui/imgui_draw.cpp
     ${ZEST_ROOT}/src/imgui/imgui_tables.cpp
     ${ZEST_ROOT}/src/imgui/imgui_widgets.cpp
-    ${ZEST_ROOT}/src/imgui/imgui_impl_sdl2.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_impl_sdl3.cpp
     ${ZEST_ROOT}/src/imgui/imgui_impl_vulkan.cpp
-    ${ZEST_ROOT}/include/zest/imgui/imgui_impl_sdl2.h
+    ${ZEST_ROOT}/include/zest/imgui/imgui_impl_sdl3.h
     ${ZEST_ROOT}/include/zest/imgui/imgui_impl_vulkan.h
     ${ZEST_ROOT}/include/zest/imgui/imstb_rectpack.h
     ${ZEST_ROOT}/include/zest/imgui/imstb_textedit.h
@@ -90,8 +90,8 @@ PUBLIC
     unofficial::concurrentqueue::concurrentqueue
     fmt::fmt
     Vulkan::Vulkan
-    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    $<TARGET_NAME_IF_EXISTS:SDL3::SDL3main>
+    $<IF:$<TARGET_EXISTS:SDL3::SDL3>,SDL3::SDL3,SDL3::SDL3-static>
     )
 
 source_group ("Zest\\Timing" .*time.*)
