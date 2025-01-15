@@ -90,8 +90,7 @@ PUBLIC
     unofficial::concurrentqueue::concurrentqueue
     fmt::fmt
     Vulkan::Vulkan
-    $<TARGET_NAME_IF_EXISTS:SDL3::SDL3main>
-    $<IF:$<TARGET_EXISTS:SDL3::SDL3>,SDL3::SDL3,SDL3::SDL3-static>
+    SDL3::SDL3
     )
 
 source_group ("Zest\\Timing" .*time.*)

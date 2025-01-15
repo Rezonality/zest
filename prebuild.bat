@@ -10,7 +10,7 @@ cd %~dp0
 
 cd vcpkg
 echo Installing Libraries
-vcpkg install cppcodec freetype tinydir stb sdl2 fmt cppcodec glm concurrentqueue catch2 nlohmann-json --triplet x64-windows-static-md --recurse
+vcpkg install cppcodec freetype tinydir stb sdl3 fmt cppcodec glm concurrentqueue catch2 nlohmann-json --triplet x64-windows-static-md --recurse
 cd %~dp0
 
 echo %Time%
