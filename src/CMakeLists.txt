@@ -1,5 +1,5 @@
 find_package(glm CONFIG REQUIRED)
-find_package(unofficial-concurrentqueue CONFIG REQUIRED)
+find_package(concurrentqueue CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
@@ -87,7 +87,7 @@ target_include_directories(Zest
 target_link_libraries(Zest
 PUBLIC
     glm::glm
-    unofficial::concurrentqueue::concurrentqueue
+    concurrentqueue::concurrentqueue
     fmt::fmt
     Vulkan::Vulkan
     SDL3::SDL3
