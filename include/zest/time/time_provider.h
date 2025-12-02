@@ -14,7 +14,7 @@
 #include <zest/time/profiler.h>
 #include <zest/thread/thread_utils.h>
 
-#include <concurrentqueue/concurrentqueue.h>
+#include <concurrentqueue/moodycamel/concurrentqueue.h>
 
 #undef ERROR
 namespace Zest

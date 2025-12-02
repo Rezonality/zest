@@ -33,6 +33,7 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/include/zest/file/toml_utils.h
     ${ZEST_ROOT}/include/zest/thread/thread_utils.h
     ${ZEST_ROOT}/include/zest/thread/threadpool.h
+    ${ZEST_ROOT}/include/zest/time/profiler.h
     ${ZEST_ROOT}/include/zest/ui/colors.h
     ${ZEST_ROOT}/include/zest/ui/dpi.h
     ${ZEST_ROOT}/include/zest/ui/imgui_extras.h
