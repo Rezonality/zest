@@ -4,9 +4,46 @@
 #include <zest/time/timer.h>
 #include <zest/math/math.h>
 #include <zest/math/math_utils.h>
+#include <pico/sync.h>
 
 namespace Zest
 {
+
+class PicoMutex {
+public:
+    PicoMutex() 
+    {
+        lock = mutex_init(&_myMutex);
+    }
+
+    void lock()
+    {
+        mutex_enter_blocking(&_myMutex);
+    }
+    void unlock()
+    {
+        mutex_exit(&_myMutex);
+    }
+    
+private:
+    mutex _myMutex;
+};
+
+class PicoLockGuard {
+public:
+    explicit PicoLockGuard(PicoMutex& mtx) : myMutex(mtx) { // construct and lock
+        myMutex.lock();
+    }
+
+    ~PicoLockGuard() noexcept {
+        myMutex.unlock();
+    }
+
+    PicoLockGuard(const PicoLockGuard&) = delete;
+    PicoLockGuard& operator=(const PicoLockGuard&) = delete;
+
+    PicoMutex& myMutex;
+}
 
 namespace Profiler
 {
@@ -77,7 +114,6 @@ void EndRegion();
 void SetRegionLimit(uint64_t maxTimeNs);
 void PushSectionBase(const char*, uint32_t, const char*, int);
 void PopSection();
-void ShowProfile();
 void HideThread();
 void Finish();
 
@@ -158,6 +194,4 @@ Zest::Profiler::NameThread(#name);
 // Hide a thread.  Not sure this is tested or works....
 #define PROFILE_HIDE_THREAD() \
 Zest::Profiler::HideThread();
-
-
 
