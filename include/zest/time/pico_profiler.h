@@ -13,7 +13,7 @@ class PicoMutex {
 public:
     PicoMutex() 
     {
-        lock = mutex_init(&_myMutex);
+        mutex_init(&_myMutex);
     }
 
     void lock()
@@ -43,7 +43,7 @@ public:
     PicoLockGuard& operator=(const PicoLockGuard&) = delete;
 
     PicoMutex& myMutex;
-}
+};
 
 namespace Profiler
 {
