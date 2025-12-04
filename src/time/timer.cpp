@@ -2,7 +2,6 @@
 #include <sstream>
 #include <string>
 
-#include "zest/logger/logger.h"
 #include "zest/time/timer.h"
 #include <zest/time/profiler.h>
 

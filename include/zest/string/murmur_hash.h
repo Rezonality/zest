@@ -129,7 +129,7 @@ constexpr uint64_t murmur_hash_64(const void * key, uint32_t len, uint64_t seed)
         h *= m;
     }
 
-    const unsigned char * data2 = (const unsigned char*)data;
+    const unsigned char * data2 = *(const unsigned char**)(&data);
 
     switch (len & 7)
     {
