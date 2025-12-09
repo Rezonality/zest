@@ -1,5 +1,6 @@
 #pragma once
 
+#include <zest/file/serializer.h>
 namespace Zest
 {
 
