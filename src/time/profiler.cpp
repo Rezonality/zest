@@ -8,7 +8,6 @@
 #include <zest/string/murmur_hash.h>
 #include <zest/ui/dpi.h>
 
-#include <zest/settings/settings.h>
 #include <zest/time/profiler.h>
 
 #include "imgui_internal.h"
