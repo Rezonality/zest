@@ -75,7 +75,6 @@ std::shared_ptr<ProfilerData> gProfilerData;
 int32_t gSelectedThread = -1;
 
 // Region
-int64_t gRegionTimeLimit = 0;
 int64_t gRegionDisplayStart = 0;
 int64_t gFrameDisplayStart = 0;
 NRectf gCandleDragRect;
@@ -404,7 +403,7 @@ void PopSection()
 
 void SetRegionLimit(uint64_t maxTimeNs)
 {
-    gRegionTimeLimit = maxTimeNs;
+    gProfilerData->regionTimeLimit = maxTimeNs;
 }
 
 void NameThread(const char* pszName)
@@ -858,7 +857,7 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
     drawRegions(gProfilerData->currentFrame, regionFrames, framesStartTime, framesDuration, gProfilerData->frameData, gFrameDisplayStart, gProfilerData->maxFrameTime, gProfilerData->maxFrameTime, FrameCandleColor, FrameCandleAltColor);
     regionMin.y += CandleHeight + 2.0f * dpi.scaleFactorXY.y;
 
-    drawRegions(gProfilerData->currentRegion, regionRegion, framesStartTime, framesDuration, gProfilerData->regionData, gRegionDisplayStart, gRegionTimeLimit, gRegionTimeLimit, RegionCandleColor, RegionCandleAltColor);
+    drawRegions(gProfilerData->currentRegion, regionRegion, framesStartTime, framesDuration, gProfilerData->regionData, gRegionDisplayStart, gProfilerData->regionTimeLimit, gProfilerData->regionTimeLimit, RegionCandleColor, RegionCandleAltColor);
     regionMin.y += CandleHeight;
 
     if (dragTimeRange.x > dragTimeRange.y)

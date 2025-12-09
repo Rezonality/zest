@@ -64,6 +64,7 @@ struct ProfilerData
     int64_t maxFrameTime;
     uint32_t currentFrame;
     uint32_t currentRegion;
+    int64_t regionTimeLimit;
     std::vector<uint64_t> stringPointers;
     std::vector<std::string> strings;
 };
@@ -102,6 +103,7 @@ inline void serialize(binary_writer& w, const ProfilerData& t)
     serialize(w, t.maxFrameTime);
     serialize(w, t.currentFrame);
     serialize(w, t.currentRegion);
+    serialize(w, t.regionTimeLimit);
     serialize(w, t.stringPointers);
     serialize(w, t.strings);
 }
@@ -114,6 +116,7 @@ inline void deserialize(binary_reader& r, ProfilerData& t)
     deserialize(r, t.maxFrameTime);
     deserialize(r, t.currentFrame);
     deserialize(r, t.currentRegion);
+    deserialize(r, t.regionTimeLimit);
     deserialize(r, t.stringPointers);
     deserialize(r, t.strings);
 
