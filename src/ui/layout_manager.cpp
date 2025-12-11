@@ -6,7 +6,7 @@
 #include <zest/ui/layout_manager.h>
 #include <zest/math/imgui_glm.h>
 
-#include <fmt/format.h>
+#include <format>
 
 #include <cppcodec/base64_default_rfc4648.hpp>
 

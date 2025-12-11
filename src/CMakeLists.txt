@@ -89,7 +89,6 @@ target_link_libraries(Zest
 PUBLIC
     glm::glm
     concurrentqueue::concurrentqueue
-    fmt::fmt
     Vulkan::Vulkan
     SDL3::SDL3
     )

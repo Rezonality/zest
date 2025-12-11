@@ -1,4 +1,4 @@
-#include <fmt/format.h>
+#include <format>
 #include <zest/file/toml_utils.h>
 #include <zest/logger/logger.h>
 

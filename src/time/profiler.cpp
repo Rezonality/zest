@@ -11,7 +11,7 @@
 #include <zest/time/profiler.h>
 
 #include "imgui_internal.h"
-#include <fmt/format.h>
+#include <format>
 
 using namespace std::chrono;
 using namespace Zest;
@@ -456,7 +456,7 @@ void EndRegion()
 
     auto& region = gProfilerData->regionData[gProfilerData->currentRegion];
     region.endTime = timer_get_elapsed(gTimer).count();
-    region.name = fmt::format("{:.2f}ms", float(timer_to_ms(nanoseconds(region.endTime - region.startTime))));
+    region.name = std::format("{:.2f}ms", float(timer_to_ms(nanoseconds(region.endTime - region.startTime))));
 
     gProfilerData->currentRegion++;
 }
@@ -497,7 +497,7 @@ void NewFrame()
     if (gProfilerData->currentFrame > 0)
     {
         gProfilerData->frameData[gProfilerData->currentFrame - 1].endTime = frame.startTime;
-        gProfilerData->frameData[gProfilerData->currentFrame - 1].name = fmt::format("{:.2f}ms", float(timer_to_ms(nanoseconds(frame.startTime - gProfilerData->frameData[gProfilerData->currentFrame - 1].startTime))));
+        gProfilerData->frameData[gProfilerData->currentFrame - 1].name = std::format("{:.2f}ms", float(timer_to_ms(nanoseconds(frame.startTime - gProfilerData->frameData[gProfilerData->currentFrame - 1].startTime))));
     }
     gProfilerData->currentFrame++;
 }
@@ -813,7 +813,7 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 
                             if (ImGui::IsMouseHoveringRect(minRect, maxRect))
                             {
-                                auto tip = fmt::format("{}: {:.4f}%", currentRegion, ((maxRect.y - minRect.y) / region.Height()) * 100.0f);
+                                auto tip = std::format("{}: {:.4f}%", currentRegion, ((maxRect.y - minRect.y) / region.Height()) * 100.0f);
                                 ImGui::SetTooltip("%s", tip.c_str());
                             }
 
@@ -857,7 +857,7 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
     drawRegions(gProfilerData->currentFrame, regionFrames, framesStartTime, framesDuration, gProfilerData->frameData, gFrameDisplayStart, gProfilerData->maxFrameTime, gProfilerData->maxFrameTime, FrameCandleColor, FrameCandleAltColor);
     regionMin.y += CandleHeight + 2.0f * dpi.scaleFactorXY.y;
 
-    drawRegions(gProfilerData->currentRegion, regionRegion, framesStartTime, framesDuration, gProfilerData->regionData, gRegionDisplayStart, gRegionTimeLimit, gRegionTimeLimit, RegionCandleColor, RegionCandleAltColor);
+    drawRegions(gProfilerData->currentRegion, regionRegion, framesStartTime, framesDuration, gProfilerData->regionData, gRegionDisplayStart, gProfilerData->regionTimeLimit, gProfilerData->regionTimeLimit, RegionCandleColor, RegionCandleAltColor);
     regionMin.y += CandleHeight;
 
     if (dragTimeRange.x > dragTimeRange.y)
@@ -911,7 +911,7 @@ void ShowProfile()
 
     ImGui::SameLine();
 
-    ImGui::TextUnformatted(fmt::format("  UI FPS {:.1f}", ImGui::GetIO().Framerate).c_str());
+    ImGui::TextUnformatted(std::format("  UI FPS {:.1f}", ImGui::GetIO().Framerate).c_str());
 
     // Ignore the first frame, which is likely a long delay due to
     // the time that expires after this profiler is created and the first
@@ -1139,7 +1139,7 @@ void ShowProfile()
 
                 if (ImGui::IsMouseHoveringRect(rectMin, rectMax))
                 {
-                    auto tip = fmt::format("{}: {:.4f}ms ({:.2f}us)\nRange: {:.4f}ms - {:.4f}ms\n\n{} (Ln {})", entry.szSection, timer_to_ms(nanoseconds(std::min(entry.endTime, threadData.maxTime) - entry.startTime)), (std::min(entry.endTime, threadData.maxTime) - entry.startTime) / 1000.0f, timer_to_ms(nanoseconds(entry.startTime)), timer_to_ms(nanoseconds(entry.endTime)), entry.szFile, entry.line);
+                    auto tip = std::format("{}: {:.4f}ms ({:.2f}us)\nRange: {:.4f}ms - {:.4f}ms\n\n{} (Ln {})", entry.szSection, timer_to_ms(nanoseconds(std::min(entry.endTime, threadData.maxTime) - entry.startTime)), (std::min(entry.endTime, threadData.maxTime) - entry.startTime) / 1000.0f, timer_to_ms(nanoseconds(entry.startTime)), timer_to_ms(nanoseconds(entry.endTime)), entry.szFile, entry.line);
                     ImGui::SetTooltip("%s", tip.c_str());
                 }
 
