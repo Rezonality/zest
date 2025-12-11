@@ -456,7 +456,9 @@ void EndRegion()
 
     auto& region = gProfilerData->regionData[gProfilerData->currentRegion];
     region.endTime = timer_get_elapsed(gTimer).count();
-    region.name = std::format("{:.2f}ms", float(timer_to_ms(nanoseconds(region.endTime - region.startTime))));
+   
+    // Reconstructed at display time, not capture time!!
+    //region.name = std::format("{:.2f}ms", float(timer_to_ms(nanoseconds(region.endTime - region.startTime))));
 
     gProfilerData->currentRegion++;
 }
@@ -1083,6 +1085,7 @@ void ShowProfile()
             pDrawList->AddLine(ImVec2(regionMin.x + float(xFrameMarker), regionMin.y), ImVec2(regionMin.x + float(xFrameMarker), regionMax.y), frameMarkerColor, 1.0f);
 
             // Frame text
+            frameInfo.name = std::format("F{}: {:.2f}ms", frameIndex, float(timer_to_ms(nanoseconds(frameInfo.endTime - frameInfo.startTime))));
             if ((xFrameMarker - lastFrameX) > ImGui::CalcTextSize(frameInfo.name.c_str()).x)
             {
                 pDrawList->AddText(pFont, smallFontSize, ImVec2(regionMin.x + float(xFrameMarker) + textPadding.x, regionMin.y + textPadding.y), 0xFFAAAAAA, frameInfo.name.c_str(), NULL, 0.0f, nullptr);
