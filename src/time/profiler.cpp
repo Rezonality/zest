@@ -8,7 +8,6 @@
 #include <zest/string/murmur_hash.h>
 #include <zest/ui/dpi.h>
 
-#include <zest/settings/settings.h>
 #include <zest/time/profiler.h>
 
 #include "imgui_internal.h"
@@ -63,6 +62,7 @@ Zest::timer gTimer;
 bool gPaused = true;
 bool gRequestPause = false;
 bool gRestarting = true;
+bool gHideUI = false;
 
 std::mutex gMutex;
 
@@ -71,16 +71,10 @@ thread_local int gThreadIndexTLS = -1;
 thread_local uint64_t gGenerationTLS = -1;
 float gMaxThreadNameSize = 0;
 
-std::vector<ThreadData> gThreadData;
-std::vector<Frame> gFrameData;
-std::vector<Region> gRegionData;
-
-int64_t gMaxFrameTime = duration_cast<nanoseconds>(milliseconds(20)).count();
-uint32_t gCurrentFrame = 0;
+std::shared_ptr<ProfilerData> gProfilerData;
 int32_t gSelectedThread = -1;
 
 // Region
-uint32_t gCurrentRegion = 0;
 int64_t gRegionTimeLimit = 0;
 int64_t gRegionDisplayStart = 0;
 int64_t gFrameDisplayStart = 0;
@@ -127,13 +121,14 @@ void Init()
 {
     CalculateColors();
 
-    gThreadData.resize(settings.MaxThreads);
+    gProfilerData = std::make_shared<ProfilerData>();
+    gProfilerData->threadData.resize(settings.MaxThreads);
 
     gProfilerGeneration++;
 
     for (uint32_t iZero = 0; iZero < settings.MaxThreads; iZero++)
     {
-        ThreadData* threadData = &gThreadData[iZero];
+        ThreadData* threadData = &gProfilerData->threadData[iZero];
         threadData->initialized = iZero == 0;
         threadData->maxLevel = 0;
         threadData->minTime = std::numeric_limits<int64_t>::max();
@@ -146,9 +141,9 @@ void Init()
         threadData->callStackDepth = 0;
     }
 
-    gFrameData.resize(settings.MaxFrames);
-    gRegionData.resize(settings.MaxRegions);
-    for (auto& frame : gFrameData)
+    gProfilerData->frameData.resize(settings.MaxFrames);
+    gProfilerData->regionData.resize(settings.MaxRegions);
+    for (auto& frame : gProfilerData->frameData)
     {
         frame.frameThreads.resize(settings.MaxThreads);
         frame.frameThreadCount = 0;
@@ -161,11 +156,11 @@ void Init()
 
     gThreadIndexTLS = 0;
     gGenerationTLS = 0;
-    gThreadData[0].initialized = true;
+    gProfilerData->threadData[0].initialized = true;
     gRestarting = true;
-    gCurrentFrame = 0;
-    gCurrentRegion = 0;
-    gMaxFrameTime = duration_cast<nanoseconds>(milliseconds(30)).count();
+    gProfilerData->currentFrame = 0;
+    gProfilerData->currentRegion = 0;
+    gProfilerData->maxFrameTime = duration_cast<nanoseconds>(milliseconds(30)).count();
     gVisibleFrames = glm::uvec2(0, 0);
     gFrameCandleRange = glm::vec2(0, 0);
     gFrameDisplayStart = 0;
@@ -176,13 +171,29 @@ void Init()
     gPaused = false;
 }
 
+void UnDump(std::shared_ptr<ProfilerData>& data)
+{
+    gPaused = true;
+    gRequestPause = true;
+    gHideUI = true;
+    std::this_thread::sleep_for(1s);
+
+    std::unique_lock<std::mutex> lk(gMutex);
+    Init();
+    gPaused = true;
+    gRequestPause = true;
+    gProfilerData = data;
+
+    gHideUI = false;
+}
+
 void InitThread()
 {
     std::unique_lock<std::mutex> lk(gMutex);
 
-    for (uint32_t iThread = 0; iThread < settings.MaxThreads; iThread++)
+    for (uint32_t iThread = 0; iThread < gProfilerData->threadData.size(); iThread++)
     {
-        ThreadData* threadData = &gThreadData[iThread];
+        ThreadData* threadData = &gProfilerData->threadData[iThread];
         if (!threadData->initialized)
         {
             // use it
@@ -194,20 +205,20 @@ void InitThread()
             return;
         }
     }
-    assert(false && "Every thread slots are used!");
+    //assert(false && "Every thread slots are used!");
 }
 
 void FinishThread()
 {
     std::unique_lock<std::mutex> lk(gMutex);
     assert(gThreadIndexTLS > -1 && "Trying to finish an uninitilized thread.");
-    gThreadData[gThreadIndexTLS].initialized = false;
+    gProfilerData->threadData[gThreadIndexTLS].initialized = false;
     gThreadIndexTLS = -1;
 }
 
 void Finish()
 {
-    gThreadData.clear();
+    gProfilerData->threadData.clear();
 }
 
 void SetPaused(bool pause)
@@ -230,7 +241,11 @@ ThreadData* GetThreadData()
         InitThread();
     }
 
-    return &gThreadData[gThreadIndexTLS];
+    if (gThreadIndexTLS == -1)
+    {
+        return nullptr;
+    }
+    return &gProfilerData->threadData[gThreadIndexTLS];
 }
 
 void HideThread()
@@ -252,19 +267,24 @@ void Reset()
 
 bool CheckEndState()
 {
-    if (gThreadData[gThreadIndexTLS].currentEntry >= settings.MaxEntriesPerThread)
+    if (gPaused)
+    {
+        return true;
+    }
+
+    if (gProfilerData->threadData[gThreadIndexTLS].currentEntry >= settings.MaxEntriesPerThread)
     {
         gPaused = true;
         gRequestPause = true;
     }
 
-    if (gCurrentFrame >= settings.MaxFrames)
+    if (gProfilerData->currentFrame >= settings.MaxFrames)
     {
         gPaused = true;
         gRequestPause = true;
     }
 
-    if (gCurrentRegion >= settings.MaxRegions)
+    if (gProfilerData->currentRegion >= settings.MaxRegions)
     {
         gPaused = true;
         gRequestPause = true;
@@ -329,9 +349,9 @@ void PushSectionBase(const char* szSection, unsigned int color, const char* szFi
     if (threadData->currentEntry == 1)
     {
         // Add this thread to the current frame info
-        if (gCurrentFrame > 0)
+        if (gProfilerData->currentFrame > 0)
         {
-            auto& frame = gFrameData[gCurrentFrame - 1];
+            auto& frame = gProfilerData->frameData[gProfilerData->currentFrame - 1];
             auto& threadInfo = frame.frameThreads[frame.frameThreadCount];
             threadInfo.activeEntry = threadData->currentEntry - 1;
             threadInfo.threadIndex = gThreadIndexTLS;
@@ -396,6 +416,10 @@ void NameThread(const char* pszName)
 
     // Must get thread data to init the thread
     ThreadData* threadData = GetThreadData();
+    if (!threadData)
+    {
+        return;
+    }
     threadData->name = pszName;
 }
 
@@ -414,7 +438,7 @@ void BeginRegion()
         return;
     }
 
-    auto& region = gRegionData[gCurrentRegion];
+    auto& region = gProfilerData->regionData[gProfilerData->currentRegion];
     region.startTime = timer_get_elapsed(gTimer).count();
 }
 
@@ -431,11 +455,11 @@ void EndRegion()
         return;
     }
 
-    auto& region = gRegionData[gCurrentRegion];
+    auto& region = gProfilerData->regionData[gProfilerData->currentRegion];
     region.endTime = timer_get_elapsed(gTimer).count();
     region.name = fmt::format("{:.2f}ms", float(timer_to_ms(nanoseconds(region.endTime - region.startTime))));
 
-    gCurrentRegion++;
+    gProfilerData->currentRegion++;
 }
 
 void NewFrame()
@@ -450,10 +474,10 @@ void NewFrame()
         return;
     }
 
-    auto& frame = gFrameData[gCurrentFrame];
+    auto& frame = gProfilerData->frameData[gProfilerData->currentFrame];
     for (uint32_t threadIndex = 0; threadIndex < settings.MaxThreads; threadIndex++)
     {
-        auto& thread = gThreadData[threadIndex];
+        auto& thread = gProfilerData->threadData[threadIndex];
         if (!thread.initialized)
         {
             continue;
@@ -471,44 +495,44 @@ void NewFrame()
     }
 
     frame.startTime = timer_get_elapsed(gTimer).count();
-    if (gCurrentFrame > 0)
+    if (gProfilerData->currentFrame > 0)
     {
-        gFrameData[gCurrentFrame - 1].endTime = frame.startTime;
-        gFrameData[gCurrentFrame - 1].name = fmt::format("{:.2f}ms", float(timer_to_ms(nanoseconds(frame.startTime - gFrameData[gCurrentFrame - 1].startTime))));
+        gProfilerData->frameData[gProfilerData->currentFrame - 1].endTime = frame.startTime;
+        gProfilerData->frameData[gProfilerData->currentFrame - 1].name = fmt::format("{:.2f}ms", float(timer_to_ms(nanoseconds(frame.startTime - gProfilerData->frameData[gProfilerData->currentFrame - 1].startTime))));
     }
-    gCurrentFrame++;
+    gProfilerData->currentFrame++;
 }
 
 // Which frames we can see in the main viewport for the current zoom
 void UpdateVisibleFrameRange()
 {
-    if (gCurrentFrame < 2)
+    if (gProfilerData->currentFrame < 2)
     {
         gVisibleFrames.x = gVisibleFrames.y = 0;
         gFrameCandleRange.x = gFrameCandleRange.y = 0.0f;
     }
 
-    glm::i32vec2 frameRangeLimits = glm::i32vec2(0, gCurrentFrame - 2);
+    glm::i32vec2 frameRangeLimits = glm::i32vec2(0, gProfilerData->currentFrame - 2);
 
     gVisibleFrames.x = std::clamp(gVisibleFrames.x, 0, frameRangeLimits.x);
     gVisibleFrames.y = std::clamp(gVisibleFrames.y, 0, frameRangeLimits.y);
 
-    while ((gVisibleFrames.y < frameRangeLimits.y) && (gFrameData[gVisibleFrames.y].endTime < gTimeRange.y))
+    while ((gVisibleFrames.y < frameRangeLimits.y) && (gProfilerData->frameData[gVisibleFrames.y].endTime < gTimeRange.y))
     {
         gVisibleFrames.y++;
     };
 
-    while ((gVisibleFrames.y > frameRangeLimits.x) && (gFrameData[gVisibleFrames.y].startTime > gTimeRange.y))
+    while ((gVisibleFrames.y > frameRangeLimits.x) && (gProfilerData->frameData[gVisibleFrames.y].startTime > gTimeRange.y))
     {
         gVisibleFrames.y--;
     };
 
-    while ((gVisibleFrames.x < frameRangeLimits.y) && (gFrameData[gVisibleFrames.x].endTime < gTimeRange.x))
+    while ((gVisibleFrames.x < frameRangeLimits.y) && (gProfilerData->frameData[gVisibleFrames.x].endTime < gTimeRange.x))
     {
         gVisibleFrames.x++;
     };
 
-    while ((gVisibleFrames.x > frameRangeLimits.x) && (gFrameData[gVisibleFrames.x].startTime > gTimeRange.x))
+    while ((gVisibleFrames.x > frameRangeLimits.x) && (gProfilerData->frameData[gVisibleFrames.x].startTime > gTimeRange.x))
     {
         gVisibleFrames.x--;
     };
@@ -628,13 +652,13 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
     NRectf regionRegion = NRectf(regionMin.x, regionMin.y + CandleHeight, regionMax.x - regionMin.x, CandleHeight);
     NRectf regionBoth = NRectf(regionFrames.topLeftPx, regionRegion.bottomRightPx);
 
-    handleMouse("##frameButton", regionBoth, gFrameCandleRange, gCurrentFrame);
+    handleMouse("##frameButton", regionBoth, gFrameCandleRange, gProfilerData->currentFrame);
 
     if (!gPaused)
     {
-        if (gCurrentFrame >= MinLeadInFrames)
+        if (gProfilerData->currentFrame >= MinLeadInFrames)
         {
-            gFrameCandleRange = glm::vec2(MinFrame, float(gCurrentFrame - 1));
+            gFrameCandleRange = glm::vec2(MinFrame, float(gProfilerData->currentFrame - 1));
             gFrameCandleRange.x = std::max(gFrameCandleRange.x, 0.0f);
         }
     }
@@ -828,13 +852,13 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
     const auto FrameCandleAltColor = settings.GetVec4f(theme, c_AccentColor2, glm::vec4(1.0f, 0.4f, 0.4f, 1.0f));
     const auto RegionCandleColor = settings.GetVec4f(theme, c_Warning, glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
     const auto RegionCandleAltColor = RegionCandleColor * 0.8f;
-    const auto framesStartTime = gFrameData[int64_t(gFrameCandleRange.x)].startTime;
-    const auto framesDuration = gFrameData[int64_t(gFrameCandleRange.y)].startTime - framesStartTime;
+    const auto framesStartTime = gProfilerData->frameData[int64_t(gFrameCandleRange.x)].startTime;
+    const auto framesDuration = gProfilerData->frameData[int64_t(gFrameCandleRange.y)].startTime - framesStartTime;
 
-    drawRegions(gCurrentFrame, regionFrames, framesStartTime, framesDuration, gFrameData, gFrameDisplayStart, gMaxFrameTime, gMaxFrameTime, FrameCandleColor, FrameCandleAltColor);
+    drawRegions(gProfilerData->currentFrame, regionFrames, framesStartTime, framesDuration, gProfilerData->frameData, gFrameDisplayStart, gProfilerData->maxFrameTime, gProfilerData->maxFrameTime, FrameCandleColor, FrameCandleAltColor);
     regionMin.y += CandleHeight + 2.0f * dpi.scaleFactorXY.y;
 
-    drawRegions(gCurrentRegion, regionRegion, framesStartTime, framesDuration, gRegionData, gRegionDisplayStart, gRegionTimeLimit, gRegionTimeLimit, RegionCandleColor, RegionCandleAltColor);
+    drawRegions(gProfilerData->currentRegion, regionRegion, framesStartTime, framesDuration, gProfilerData->regionData, gRegionDisplayStart, gRegionTimeLimit, gRegionTimeLimit, RegionCandleColor, RegionCandleAltColor);
     regionMin.y += CandleHeight;
 
     if (dragTimeRange.x > dragTimeRange.y)
@@ -847,6 +871,10 @@ glm::u64vec2 ShowCandles(glm::vec2& regionMin, glm::vec2& regionMax)
 // Show the profiler window
 void ShowProfile()
 {
+    if (gHideUI)
+    {
+        return;
+    }
     PROFILE_SCOPE(Profile_UI);
 
     bool pause = gPaused;
@@ -889,8 +917,8 @@ void ShowProfile()
     // Ignore the first frame, which is likely a long delay due to
     // the time that expires after this profiler is created and the first
     // frame is drawn
-    const uint32_t MaxFrame = gCurrentFrame - 2;
-    if (gCurrentFrame < MinLeadInFrames)
+    const uint32_t MaxFrame = gProfilerData->currentFrame - 2;
+    if (gProfilerData->currentFrame < MinLeadInFrames)
     {
         return;
     }
@@ -919,12 +947,11 @@ void ShowProfile()
     const auto smallFontSize = fontSize * .66f;
     const auto heightPerLevel = fontSize + 2.0f;
 
-    const auto maxTime = gFrameData[gCurrentFrame - 1].startTime;
-    const auto minTime = gFrameData[MinFrame].startTime;
+    const auto maxTime = gProfilerData->frameData[gProfilerData->currentFrame - 1].startTime;
+    const auto minTime = gProfilerData->frameData[MinFrame].startTime;
     int64_t visibleDuration;
     double pixelsPerTime;
     double timePerPixels;
-
 
     auto setTimeRange = [&](glm::i64vec2 range) {
         assert(range.y >= range.x);
@@ -1047,7 +1074,7 @@ void ShowProfile()
 
     for (int32_t frameIndex = gVisibleFrames.x; frameIndex < gVisibleFrames.y; frameIndex++)
     {
-        auto& frameInfo = gFrameData[frameIndex];
+        auto& frameInfo = gProfilerData->frameData[frameIndex];
 
         // Left hand side of the frame
         auto xFrameMarker = xFromTime(frameInfo.startTime);
@@ -1066,10 +1093,10 @@ void ShowProfile()
 
         float y = regionMin.y + smallFontSize + textPadding.y;
 
-        for (uint32_t threadIndex = 0; threadIndex < gFrameData[frameIndex].frameThreadCount; threadIndex++)
+        for (uint32_t threadIndex = 0; threadIndex < gProfilerData->frameData[frameIndex].frameThreadCount; threadIndex++)
         {
             auto& frameThreadInfo = frameInfo.frameThreads[threadIndex];
-            auto& threadData = gThreadData[frameThreadInfo.threadIndex];
+            auto& threadData = gProfilerData->threadData[frameThreadInfo.threadIndex];
 
             if (threadData.hidden)
             {

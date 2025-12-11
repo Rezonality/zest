@@ -3,7 +3,6 @@
 #include <string>
 
 #include "zest/time/timer.h"
-#include <zest/time/profiler.h>
 
 using namespace std::chrono;
 using namespace Zest;
