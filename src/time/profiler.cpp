@@ -75,7 +75,6 @@ std::shared_ptr<ProfilerData> gProfilerData;
 int32_t gSelectedThread = -1;
 
 // Region
-int64_t gRegionTimeLimit = 0;
 int64_t gRegionDisplayStart = 0;
 int64_t gFrameDisplayStart = 0;
 NRectf gCandleDragRect;
@@ -404,7 +403,7 @@ void PopSection()
 
 void SetRegionLimit(uint64_t maxTimeNs)
 {
-    gRegionTimeLimit = maxTimeNs;
+    gProfilerData->regionTimeLimit = maxTimeNs;
 }
 
 void NameThread(const char* pszName)
