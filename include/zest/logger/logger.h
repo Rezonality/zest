@@ -159,7 +159,7 @@ private:
 #ifndef LOG
 #define CONCAT_LINE_(x,y) x##y
 #define CONCAT_LINE(x,y) CONCAT_LINE_(x, y)
-#ifdef _DEBUG
+#ifndef NDEBUG
 #define LOG_SCOPE(a, b) \
     Zest::Log(Zest::LT::a) << b;        \
     Zest::LogIndenter CONCAT_LINE(LogIndenter,__LINE__)(4);
@@ -178,7 +178,7 @@ private:
     }
 #define LOG(a, b) Zest::Log(Zest::LT::a) << b
 #define LOG_INDENT(a, indent, b) Zest::Log(Zest::LT::a, indent) << b
-#else
+#else // Release
 #define LOG_PUSH_INDENT(a)
 #define LOG_POP_INDENT()
 #define LOG_SCOPE(a, b)
