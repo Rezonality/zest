@@ -45,6 +45,9 @@ set(UTILS_SOURCES
 
 set(IMGUI_SOURCE
     ${ZEST_ROOT}/src/imgui/imgui.cpp
+    ${ZEST_ROOT}/src/imgui/implot.cpp
+    ${ZEST_ROOT}/src/imgui/implot_demo.cpp
+    ${ZEST_ROOT}/src/imgui/implot_items.cpp
     ${ZEST_ROOT}/src/imgui/imgui_demo.cpp
     ${ZEST_ROOT}/src/imgui/imgui_draw.cpp
     ${ZEST_ROOT}/src/imgui/imgui_tables.cpp
