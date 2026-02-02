@@ -1884,7 +1884,7 @@ static void ShowDemoWindowWidgets(ImGuiDemoWindowData* demo_data)
             };
 
             // For this demo we are using ImVector as a string container.
-            // Note that because we need to store a terminating zero character, our size/capacity are 1 more
+            // Note that because we need to store a terminating zero character, our size/m_capacity are 1 more
             // than usually reported by a typical string class.
             static ImVector<char> my_str;
             if (my_str.empty())

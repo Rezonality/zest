@@ -28,6 +28,7 @@ set(UTILS_SOURCES
     ${ZEST_ROOT}/src/ui/nanovg.cpp
 
     ${ZEST_ROOT}/include/zest/algorithm/container_utils.h
+    ${ZEST_ROOT}/include/zest/algorithm/ring_buffer.h
     ${ZEST_ROOT}/include/zest/algorithm/ringiterator.h
     ${ZEST_ROOT}/include/zest/file/runtree.h
     ${ZEST_ROOT}/include/zest/file/toml_utils.h

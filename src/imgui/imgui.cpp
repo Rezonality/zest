@@ -4434,7 +4434,7 @@ void ImGui::GcCompactTransientWindowBuffers(ImGuiWindow* window)
 
 void ImGui::GcAwakeTransientWindowBuffers(ImGuiWindow* window)
 {
-    // We stored capacity of the ImDrawList buffer to reduce growth-caused allocation/copy when awakening.
+    // We stored m_capacity of the ImDrawList buffer to reduce growth-caused allocation/copy when awakening.
     // The other buffers tends to amortize much faster.
     window->MemoryCompacted = false;
     window->DrawList->IdxBuffer.reserve(window->MemoryDrawListIdxCapacity);
@@ -7615,7 +7615,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
             window->DrawList->ChannelsSetCurrent(DOCKING_HOST_DRAW_CHANNEL_FG); // Render decorations on channel 1 as we will render the backgrounds manually later
         }
 
-        // Restore buffer capacity when woken from a compacted state, to avoid
+        // Restore buffer m_capacity when woken from a compacted state, to avoid
         if (window->MemoryCompacted)
             GcAwakeTransientWindowBuffers(window);
 
