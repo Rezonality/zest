@@ -69,6 +69,18 @@ void ring_buffer_assign_ordered(const ring_buffer<T>& buffer, std::vector<T>& de
 }
 
 template <class T>
+void ring_buffer_assign_ordered_newest(const ring_buffer<T>& buffer, std::vector<T>& dest, uint32_t count)
+{
+    dest.resize(count);
+    size_t idx = buffer.head;
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        dest[i] = buffer.data[idx];
+        idx = (idx + 1) % buffer.data.size();
+    }
+}
+
+template <class T>
 void ring_buffer_drain_n(ring_buffer<T>& buffer, uint32_t count)
 {
     if (count == 0)
