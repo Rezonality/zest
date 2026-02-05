@@ -30,6 +30,11 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: "4.0.0"
+
     - name: Install Vulkan SDK
       uses: humbletim/setup-vulkan-sdk@v1.2.0
       with:
@@ -79,7 +84,7 @@ jobs:
       shell: bash
       if: matrix.build_type == 'Coverage'
       env:
-        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN || '' }}
       run: |
         bash <(curl -s https://codecov.io/bash)
         find .. -name *.gcno | xargs gcov
@@ -89,21 +94,23 @@ jobs:
         bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.info
 
     - name: Archive Coverage HTML
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: matrix.build_type == 'Coverage'
       with:
-          name: coverage-html
+          name: coverage-html-${{ matrix.os }}-${{ matrix.cc }}-${{ matrix.build_type }}
           path: |
             ${{github.workspace}}/build/**/*.html
             ${{github.workspace}}/build/**/*.css
+          if-no-files-found: warn
 
     - name: Archive Binary
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-          name: binaries
+          name: binaries-${{ matrix.os }}-${{ matrix.cc }}-${{ matrix.build_type }}
           path: |
             ${{github.workspace}}/build/app/**/*.ttf
             ${{github.workspace}}/build/app/**/*.scm
             ${{github.workspace}}/build/app/**/Zing*
             ${{github.workspace}}/build/tests/**/unittests/*.exe
+          if-no-files-found: warn
 
