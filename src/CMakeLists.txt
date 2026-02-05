@@ -1,4 +1,4 @@
-find_package(glm CONFIG REQUIRED)
+find_package(glm REQUIRED)
 find_package(concurrentqueue CONFIG REQUIRED)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
