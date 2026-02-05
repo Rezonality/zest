@@ -40,7 +40,7 @@ jobs:
       with:
         vulkan-query-version: 1.3.204.0
         vulkan-components: Vulkan-Headers, Vulkan-Loader
-        vulkan-use-cache: true
+        vulkan-use-cache: false
 
     - name: Mac pkg-config
       run: |
