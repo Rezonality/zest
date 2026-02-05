@@ -51,7 +51,7 @@ jobs:
       env:
         CC: ${{ matrix.cc}}
       run: |
-        sudo apt-get install lcov
+        sudo apt-get install lcov autoconf autoconf-archive automake libtool
       if: matrix.os == 'ubuntu-latest'
 
     - name: Build Zing
