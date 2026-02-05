@@ -256,7 +256,7 @@ bool SettingsManager::Load(const std::filesystem::path& path)
                     }
                     else
                     {
-                        assert(!"Unknown reloaded setting?");
+                        LOG(WARNING, "Unknown table entry on reload: " << section.str());
                     }
                 }
             }
