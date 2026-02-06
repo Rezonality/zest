@@ -3,6 +3,7 @@
 // Useful macros
 //
 #include <cstdio>
+#include <cstdint>
 
 #define UNUSED(a) (void)a;
 

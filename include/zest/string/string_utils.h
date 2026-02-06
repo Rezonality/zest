@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 #include <iomanip>
+#include <cstdint>
 
 namespace Zest
 {
