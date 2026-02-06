@@ -1,4 +1,6 @@
 #include <format>
+#include <algorithm>
+
 #include <zest/file/toml_utils.h>
 #include <zest/logger/logger.h>
 
