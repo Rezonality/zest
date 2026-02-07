@@ -8,6 +8,15 @@
 #include <future>
 #include <thread>
 
+#if defined(__x86_64__) || defined(_M_X64)
+  #include <immintrin.h>
+  #define cpu_relax() _mm_pause()
+#elif defined(__aarch64__)
+  #define cpu_relax() __asm__ __volatile__("yield")
+#else
+  #define cpu_relax() ((void)0)
+#endif
+
 namespace Zest
 {
 template <typename R>
@@ -43,7 +52,7 @@ struct spin_mutex
             if (try_lock())
                 return;
 
-            _mm_pause();
+            cpu_relax();
         }
 
         while (true)
@@ -53,16 +62,16 @@ struct spin_mutex
                 if (try_lock())
                     return;
 
-                _mm_pause();
-                _mm_pause();
-                _mm_pause();
-                _mm_pause();
-                _mm_pause();
-                _mm_pause();
-                _mm_pause();
-                _mm_pause();
-                _mm_pause();
-                _mm_pause();
+                cpu_relax();
+                cpu_relax();
+                cpu_relax();
+                cpu_relax();
+                cpu_relax();
+                cpu_relax();
+                cpu_relax();
+                cpu_relax();
+                cpu_relax();
+                cpu_relax();
             }
 
             // waiting longer than we should, let's give other threads
