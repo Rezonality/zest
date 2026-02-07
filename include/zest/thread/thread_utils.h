@@ -4,7 +4,6 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
-#include <emmintrin.h>
 #include <future>
 #include <thread>
 
