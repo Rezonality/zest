@@ -1,5 +1,5 @@
 git pull
-REM cd vcpkg
-REM git checkout master
-REM git pull
-REM cd ..
+cd vcpkg
+git checkout master
+git pull
+cd ..
