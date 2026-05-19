@@ -1,6 +1,12 @@
 find_package(glm CONFIG REQUIRED)
-find_package(concurrentqueue CONFIG REQUIRED)
-find_package(SDL3 CONFIG REQUIRED)
+find_package(concurrentqueue CONFIG QUIET)
+if(NOT TARGET concurrentqueue::concurrentqueue)
+    find_package(unofficial-concurrentqueue CONFIG REQUIRED)
+    add_library(concurrentqueue::concurrentqueue INTERFACE IMPORTED)
+    set_target_properties(concurrentqueue::concurrentqueue PROPERTIES
+        INTERFACE_LINK_LIBRARIES unofficial::concurrentqueue::concurrentqueue)
+endif()
+find_package(SDL2 CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(Stb REQUIRED)
 find_path(TINYDIR_INCLUDE_DIR "tinydir.h")
@@ -52,9 +58,9 @@ set(IMGUI_SOURCE
     ${ZEST_ROOT}/src/imgui/imgui_draw.cpp
     ${ZEST_ROOT}/src/imgui/imgui_tables.cpp
     ${ZEST_ROOT}/src/imgui/imgui_widgets.cpp
-    ${ZEST_ROOT}/src/imgui/imgui_impl_sdl3.cpp
+    ${ZEST_ROOT}/src/imgui/imgui_impl_sdl2.cpp
     ${ZEST_ROOT}/src/imgui/imgui_impl_vulkan.cpp
-    ${ZEST_ROOT}/include/zest/imgui/imgui_impl_sdl3.h
+    ${ZEST_ROOT}/include/zest/imgui/imgui_impl_sdl2.h
     ${ZEST_ROOT}/include/zest/imgui/imgui_impl_vulkan.h
     ${ZEST_ROOT}/include/zest/imgui/imstb_rectpack.h
     ${ZEST_ROOT}/include/zest/imgui/imstb_textedit.h
@@ -93,7 +99,7 @@ PUBLIC
     glm::glm
     concurrentqueue::concurrentqueue
     Vulkan::Vulkan
-    SDL3::SDL3
+    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
     )
 
 source_group ("Zest\\Timing" .*time.*)
