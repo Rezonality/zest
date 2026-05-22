@@ -25,6 +25,7 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2026-05-22: Metal: use SDL_Metal_GetDrawableSize() for framebuffer scale on high-DPI displays.
 //  2024-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
 //  2024-10-24: Emscripten: from SDL 2.30.9, SDL_EVENT_MOUSE_WHEEL event doesn't require dividing by 100.0f.
 //  2024-09-09: use SDL_Vulkan_GetDrawableSize() when available. (#7967, #3190)
@@ -124,12 +125,18 @@
 #define SDL_HAS_USABLE_DISPLAY_BOUNDS       SDL_VERSION_ATLEAST(2,0,5)
 #define SDL_HAS_PER_MONITOR_DPI             SDL_VERSION_ATLEAST(2,0,4)
 #define SDL_HAS_VULKAN                      SDL_VERSION_ATLEAST(2,0,6)
+#define SDL_HAS_METAL                       SDL_VERSION_ATLEAST(2,0,14)
 #define SDL_HAS_DISPLAY_EVENT               SDL_VERSION_ATLEAST(2,0,9)
 #define SDL_HAS_SHOW_WINDOW_ACTIVATION_HINT SDL_VERSION_ATLEAST(2,0,18)
 #if SDL_HAS_VULKAN
 #include <SDL_vulkan.h>
 #else
 static const Uint32 SDL_WINDOW_VULKAN = 0x10000000;
+#endif
+#if SDL_HAS_METAL
+#include <SDL_metal.h>
+#else
+static const Uint32 SDL_WINDOW_METAL = 0x20000000;
 #endif
 
 // SDL Data
@@ -141,6 +148,7 @@ struct ImGui_ImplSDL2_Data
     Uint64                  Time;
     char*                   ClipboardTextData;
     bool                    UseVulkan;
+    bool                    UseMetal;
     bool                    WantUpdateMonitors;
 
     // Mouse handling
@@ -623,7 +631,11 @@ bool ImGui_ImplSDL2_InitForD3D(SDL_Window* window)
 
 bool ImGui_ImplSDL2_InitForMetal(SDL_Window* window)
 {
-    return ImGui_ImplSDL2_Init(window, nullptr, nullptr);
+    if (!ImGui_ImplSDL2_Init(window, nullptr, nullptr))
+        return false;
+    ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
+    bd->UseMetal = true;
+    return true;
 }
 
 bool ImGui_ImplSDL2_InitForSDLRenderer(SDL_Window* window, SDL_Renderer* renderer)
@@ -906,6 +918,10 @@ void ImGui_ImplSDL2_NewFrame()
 #if SDL_HAS_VULKAN
     else if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_VULKAN)
         SDL_Vulkan_GetDrawableSize(bd->Window, &display_w, &display_h);
+#endif
+#if SDL_HAS_METAL
+    else if (bd->UseMetal || (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_METAL))
+        SDL_Metal_GetDrawableSize(bd->Window, &display_w, &display_h);
 #endif
     else
         SDL_GL_GetDrawableSize(bd->Window, &display_w, &display_h);
