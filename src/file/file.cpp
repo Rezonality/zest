@@ -419,6 +419,8 @@ std::vector<fs::path> file_gather_files(const fs::path& root, bool recursive)
 
             tinydir_next(&thisDir);
         }
+
+        tinydir_close(&thisDir);
     }
     return ret;
 }
