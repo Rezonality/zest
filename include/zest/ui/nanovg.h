@@ -172,6 +172,7 @@ void nvgCancelFrame(NVGcontext* ctx);
 
 // Ends drawing flushing remaining render state.
 void nvgEndFrame(vulkan::VulkanContext& ctx, NVGcontext* nvgctx);
+void nvgEndFrame(NVGcontext* nvgctx);
 
 //
 // Composite operation
@@ -678,6 +679,7 @@ struct NVGparams
     void (*renderViewport)(void* uptr, float width, float height, float devicePixelRatio);
     void (*renderCancel)(void* uptr);
     void (*renderFlush)(vulkan::VulkanContext& ctx, void* uptr);
+    void (*renderFlushNoContext)(void* uptr);
     void (*renderFill)(void* uptr, NVGpaint* paint, NVGcompositeOperationState compositeOperation, NVGscissor* scissor, float fringe, const float* bounds, const NVGpath* paths, int npaths);
     void (*renderStroke)(void* uptr, NVGpaint* paint, NVGcompositeOperationState compositeOperation, NVGscissor* scissor, float fringe, float strokeWidth, const NVGpath* paths, int npaths);
     void (*renderTriangles)(void* uptr, NVGpaint* paint, NVGcompositeOperationState compositeOperation, NVGscissor* scissor, const NVGvertex* verts, int nverts, float fringe);

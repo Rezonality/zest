@@ -464,9 +464,8 @@ void nvgCancelFrame(NVGcontext* ctx)
     ctx->params.renderCancel(ctx->params.userPtr);
 }
 
-void nvgEndFrame(vulkan::VulkanContext& vctx, NVGcontext* ctx)
+static void nvg__compactFontImages(NVGcontext* ctx)
 {
-    ctx->params.renderFlush(vctx, ctx->params.userPtr);
     if (ctx->fontImageIdx != 0)
     {
         int fontImage = ctx->fontImages[ctx->fontImageIdx];
@@ -495,6 +494,21 @@ void nvgEndFrame(vulkan::VulkanContext& vctx, NVGcontext* ctx)
         for (i = j; i < NVG_MAX_FONTIMAGES; i++)
             ctx->fontImages[i] = 0;
     }
+}
+
+void nvgEndFrame(vulkan::VulkanContext& vctx, NVGcontext* ctx)
+{
+    ctx->params.renderFlush(vctx, ctx->params.userPtr);
+    nvg__compactFontImages(ctx);
+}
+
+void nvgEndFrame(NVGcontext* ctx)
+{
+    if (ctx->params.renderFlushNoContext)
+    {
+        ctx->params.renderFlushNoContext(ctx->params.userPtr);
+    }
+    nvg__compactFontImages(ctx);
 }
 
 NVGcolor nvgRGB(unsigned char r, unsigned char g, unsigned char b)
